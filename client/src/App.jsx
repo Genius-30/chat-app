@@ -25,6 +25,7 @@ const App = () => {
         const res = await axios.get("/api/user", {
           withCredentials: true,
         });
+
         const { user, accessToken } = res.data;
         dispatch(login(user, accessToken));
 

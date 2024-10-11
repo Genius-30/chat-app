@@ -1,7 +1,14 @@
 import { Check, CheckCheck } from "lucide-react";
 import React from "react";
 
-function ChatCard({ profile, name, latestMsg, msgStatus, lastSeen, msgCount }) {
+function ChatCard({
+  avatar,
+  username,
+  latestMsg,
+  msgStatus,
+  lastSeen,
+  msgCount,
+}) {
   const renderCheckIcon = () => {
     switch (msgStatus) {
       case "sent":
@@ -23,15 +30,15 @@ function ChatCard({ profile, name, latestMsg, msgStatus, lastSeen, msgCount }) {
     <div className="chat-card h-[60px] flex items-center gap-x-2 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded-md transition-color ease-linear duration-100 select-none cursor-pointer">
       <img
         src={
-          profile
-            ? profile
+          avatar
+            ? avatar
             : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
         }
         className="h-full aspect-square rounded-full object-cover object-center"
       />
       <div className="chat-card-details flex flex-col justify-between flex-1">
         <div className="chat-card-top flex items-center justify-between">
-          <h3 className="font-semibold truncate max-w-[120px]">{name}</h3>
+          <h3 className="font-semibold truncate max-w-[120px]">{username}</h3>
           <div className="flex items-center gap-x-1 text-xs text-gray-500 dark:text-gray-400">
             {renderCheckIcon()}
             <p>{lastSeen && lastSeen}</p>

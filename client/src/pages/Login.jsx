@@ -55,8 +55,8 @@ const Login = () => {
         return;
       }
 
-      const { user } = response.data;
-      dispatch(login({ user, token: response.data.accessToken }));
+      const { user, accessToken } = response.data;
+      dispatch(login(user, accessToken));
 
       navigate("/");
       toast.success("Login successful");

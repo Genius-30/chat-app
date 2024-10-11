@@ -14,11 +14,10 @@ import toast from "react-hot-toast";
 import axios from "@/api/axios";
 import useDebounce from "@/hooks/useDebounce";
 
-function SearchBox({ onSearch, onChatUpdate }) {
+function SearchBox({ onSearch, onChatUpdate, existingchats }) {
   const [open, setOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [users, setUsers] = useState([]);
-  const [existingChats, setExistingChats] = useState([]);
   const debouncedSearchTerm = useDebounce(searchTerm, 300);
 
   const handleAddOrRemoveUser = async (user) => {
@@ -45,15 +44,7 @@ function SearchBox({ onSearch, onChatUpdate }) {
 
       onChatUpdate(res.data);
 
-      if (res.data.message.includes("removed")) {
-        setExistingChats((prev) =>
-          prev.filter((chatUser) => chatUser._id !== user._id)
-        );
-        toast.success("Chat removed successfully");
-      } else {
-        setExistingChats((prev) => [...prev, user]);
-        toast.success("Chat created successfully");
-      }
+      toast.success(res.data.message);
     } catch (error) {
       toast.error(error.response?.data?.message || "An error occurred");
     }
@@ -120,8 +111,8 @@ function SearchBox({ onSearch, onChatUpdate }) {
           {users.length > 0 && (
             <ul className="mt-2">
               {users.map((user) => {
-                const isExistingChat = existingChats.some(
-                  (chatUser) => chatUser._id === user._id
+                const isExistingChat = existingchats.some(
+                  (chatUser) => chatUser.users[0]._id === user._id
                 );
 
                 return (

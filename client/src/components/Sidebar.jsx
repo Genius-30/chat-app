@@ -73,7 +73,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
 
   return (
     <div
-      className={`sidebar z-[99] h-full flex flex-col absolute bg-slate-200 dark:bg-zinc-800 py-4 rounded-tr-lg rounded-br-lg ${menuClasses}`}
+      className={`sidebar z-[49] h-full flex flex-col absolute bg-slate-200 dark:bg-zinc-800 py-4 rounded-tr-lg rounded-br-lg ${menuClasses}`}
       ref={buttonRef}
     >
       <div

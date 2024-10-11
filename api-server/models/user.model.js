@@ -10,7 +10,7 @@ const userSchema = new mongoose.Schema({
     default:
       "https://static.vecteezy.com/system/resources/thumbnails/020/911/737/small_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png",
   },
-  refreshToken: { type: String },
+  refreshToken: { type: String, select: false },
 });
 
 userSchema.methods.comparePassword = async function (password) {

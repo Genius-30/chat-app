@@ -30,7 +30,9 @@ const Home = () => {
       setChats(allChats);
     } else {
       const filteredChats = allChats.filter((chat) =>
-        chat.users[1].username.toLowerCase().includes(text.toLowerCase())
+        chat.isGroupChat
+          ? chat.chatName.toLowerCase().includes(text.toLowerCase())
+          : chat.users[0].username.toLowerCase().includes(text.toLowerCase())
       );
       setChats(filteredChats);
     }
@@ -65,8 +67,8 @@ const Home = () => {
       setAllChats((prev) => prev.filter((c) => c._id !== chat.chatId));
       setChats((prev) => prev.filter((c) => c._id !== chat.chatId));
     } else {
-      setAllChats((prev) => [...prev, chat.createdChat]);
-      setChats((prev) => [...prev, chat.createdChat]);
+      setAllChats((prev) => [...prev, chat.chat]);
+      setChats((prev) => [...prev, chat.chat]);
     }
   };
 
@@ -86,22 +88,33 @@ const Home = () => {
             <SearchBox
               onSearch={handleSearch}
               onChatUpdate={handleChatUpdate}
+              existingchats={allChats}
             />
             <div className="all-chats-container h-full overflow-y-auto my-4 space-y-3">
               {loading ? (
                 <ChatsSkeleton count={8} />
               ) : chats.length > 0 ? (
-                chats.map((chat) => (
-                  <ChatCard
-                    key={chat._id}
-                    profile={chat.users[1].avatar}
-                    name={chat.users[1].username}
-                    // msgStatus={chat.msgStatus}
-                    // lastSeen={chat.lastSeen}
-                    latestMsg={chat.latestMessage}
-                    msgCount={chat.msgCount}
-                  />
-                ))
+                chats.map((chat) => {
+                  const isGroupChat = chat.isGroupChat;
+                  const chatName = isGroupChat
+                    ? chat.chatName
+                    : chat.users[0].username;
+                  const chatAvatar = isGroupChat
+                    ? "/path/to/group-avatar.png"
+                    : chat.users[0].avatar;
+
+                  return (
+                    <ChatCard
+                      key={chat._id}
+                      avatar={chatAvatar}
+                      username={chatName}
+                      // msgStatus={chat.msgStatus}
+                      // lastSeen={chat.lastSeen}
+                      // latestMsg={chat.latestMessage}
+                      // msgCount={chat.msgCount}
+                    />
+                  );
+                })
               ) : (
                 <p className="text-center">No Chats!</p>
               )}
