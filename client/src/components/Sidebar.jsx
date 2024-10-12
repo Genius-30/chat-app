@@ -111,7 +111,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
           <img
             src={user.avatar}
             alt={`${user.username}'s avatar`}
-            className="h-11 w-11"
+            className="h-8 aspect-square rounded-full"
           />
           {menu && <p className="select-none">Profile</p>}
         </div>

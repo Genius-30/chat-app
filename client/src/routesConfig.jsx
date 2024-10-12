@@ -1,5 +1,6 @@
 import { lazy } from "react";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import VerifyEmail from "./pages/VerifyEmail";
 
 const Auth = lazy(() => import("./pages/Auth"));
 const Login = lazy(() => import("./pages/Login"));
@@ -22,6 +23,10 @@ const routes = [
         element: <Signup />,
       },
     ],
+  },
+  {
+    path: "/verify-email",
+    element: <VerifyEmail />,
   },
   {
     path: "/",

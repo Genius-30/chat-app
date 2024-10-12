@@ -27,13 +27,10 @@ function ChatCard({
   };
 
   return (
-    <div className="chat-card h-[60px] flex items-center gap-x-2 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded-md transition-color ease-linear duration-100 select-none cursor-pointer">
+    <div className="chat-card h-[60px] flex items-center gap-x-2 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded-md transition-color ease-linear duration-100 select-none cursor-pointer p-2">
       <img
-        src={
-          avatar
-            ? avatar
-            : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png"
-        }
+        src={avatar}
+        alt={`${username}'s avatar`}
         className="h-full aspect-square rounded-full object-cover object-center"
       />
       <div className="chat-card-details flex flex-col justify-between flex-1">

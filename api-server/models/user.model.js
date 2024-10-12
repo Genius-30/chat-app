@@ -8,9 +8,12 @@ const userSchema = new mongoose.Schema({
   avatar: {
     type: String,
     default:
-      "https://static.vecteezy.com/system/resources/thumbnails/020/911/737/small_2x/user-profile-icon-profile-avatar-user-icon-male-icon-face-icon-profile-icon-free-png.png",
+      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
   },
   refreshToken: { type: String, select: false },
+  verifyCode: { type: String, select: false },
+  verifyCodeExpiry: { type: Date, select: false },
+  isVerified: { type: Boolean, default: false },
 });
 
 userSchema.methods.comparePassword = async function (password) {

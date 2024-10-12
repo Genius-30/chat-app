@@ -19,8 +19,15 @@ const App = () => {
 
   const nodeRef = useRef(null);
 
+  const authPaths = ["/auth/login", "/auth/signup"];
+
   useEffect(() => {
     const fetchUser = async () => {
+      if (authPaths.includes(location.pathname)) {
+        setLoader(false);
+        return;
+      }
+
       try {
         const res = await axios.get("/api/user", {
           withCredentials: true,
@@ -34,7 +41,6 @@ const App = () => {
         }
       } catch (error) {
         dispatch(logout());
-        toast.success("Please login to continue");
       } finally {
         setLoader(false);
       }

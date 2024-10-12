@@ -15,6 +15,7 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  let toastId;
 
   const resetForm = () => {
     setFormData({
@@ -29,6 +30,48 @@ const Login = () => {
       ...prevData,
       [name]: value,
     }));
+  };
+
+  const handleResendVerificationEmail = async () => {
+    toastId = toast.loading("Resending verification email...");
+
+    try {
+      const resendResponse = await axios.get(
+        "/api/user/resend-verification-email"
+      );
+      toast.success(resendResponse.data.message);
+      toast.dismiss(toastId);
+    } catch (error) {
+      toast.error(
+        error.response.data.message || "Failed to resend verification email."
+      );
+    }
+  };
+
+  const showLinkToast = () => {
+    toast.error(
+      <div>
+        Your account is not verified. Please check your email for the
+        verification link.
+        <button
+          onClick={() => {
+            toast.dismiss();
+            handleResendVerificationEmail();
+          }}
+          style={{
+            color: "blue",
+            textDecoration: "underline",
+            cursor: "pointer",
+            marginRight: "10px",
+          }}
+        >
+          Resend verification email.
+        </button>
+      </div>,
+      {
+        duration: 5000,
+      }
+    );
   };
 
   const handleLogin = async () => {
@@ -62,7 +105,11 @@ const Login = () => {
       toast.success("Login successful");
       resetForm();
     } catch (error) {
-      toast.error("Login failed");
+      if (error.response.status === 403) {
+        showLinkToast();
+      } else {
+        toast.error("Login failed. Please check your credentials.");
+      }
     } finally {
       setLoading(false);
     }
