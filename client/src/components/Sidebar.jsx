@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useRef, useState } from "react";
-import { MenuIcon, MessageSquareText, User, X } from "lucide-react";
+import { Check, Edit, MenuIcon, MessageSquareText, X } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Separator } from "./ui/separator";
 import { useDispatch, useSelector } from "react-redux";
@@ -14,8 +14,12 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
 
   const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [profileImage, setProfileImage] = useState("");
+  const [username, setUsername] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
   const profileRef = useRef(null);
+  const profileIconRef = useRef(null);
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -44,9 +48,10 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
         setLoading(false);
         return;
       }
+      navigate("/auth/login");
+
       dispatch(logout());
       toast.success(res.data.message);
-      navigate("/auth/login");
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -54,11 +59,54 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
     }
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImage(URL.createObjectURL(file));
+    }
+  };
+
+  const handleEditUsername = async () => {
+    if (isEditing) {
+      if (username && username !== user.username) {
+        try {
+          const res = await axios.put(
+            "/api/user/update-username",
+            {
+              username: username,
+            },
+            {
+              withCredentials: true,
+            }
+          );
+
+          if (res.data.error) {
+            toast.error(res.data.message);
+            return;
+          }
+
+          toast.success(res.data.message);
+        } catch (error) {
+          toast.error(error.message);
+        } finally {
+          setIsEditing(!isEditing);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (user && user.username) {
+      setUsername(user.username);
+    }
+  }, [user]);
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (
         profileRef.current &&
         !profileRef.current.contains(event.target) &&
+        !profileIconRef.current.contains(event.target) &&
         showProfile
       ) {
         setShowProfile(false);
@@ -101,6 +149,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
       </div>
       <div className="relative w-full mt-auto">
         <div
+          ref={profileIconRef}
           onClick={handleProfile}
           className={`w-full flex items-center gap-3 rounded-md bg-cover ${
             showProfile
@@ -125,14 +174,51 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
             <div className="flex-1 w-full flex flex-col items-start justify-end mb-2">
               <div
                 key={user._id}
-                className="flex items-center gap-2 mb-2 cursor-pointer font-bold"
+                className="w-full flex flex-col items-center gap-3 mb-2 cursor-pointer"
               >
-                <img
-                  src={user.avatar}
-                  alt="profile pic"
-                  className="h-8 w-8 rounded-full object-cover object-center bg-zinc-300 dark:bg-zinc-700"
+                <label htmlFor="profileImage" className="cursor-pointer">
+                  <img
+                    src={profileImage || user.avatar}
+                    alt="profile pic"
+                    className="h-28 w-auto aspect-square rounded-full object-cover object-center bg-zinc-300 dark:bg-zinc-700"
+                  />
+                </label>
+                <input
+                  type="file"
+                  id="profileImage"
+                  accept="image/*"
+                  onChange={handleImageChange}
+                  className="hidden"
                 />
-                <span>{user.username}</span>
+                <div className="w-full flex justify-center items-center gap-2">
+                  {isEditing ? (
+                    <input
+                      type="text"
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="w-full bg-gray-300 dark:bg-[#323232] text-black dark:text-gray-50 border rounded-md px-2 py-1"
+                      onBlur={() => {
+                        setIsEditing(false);
+                        if (!username) {
+                          setUsername(user.username);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <span>{username || user.username}</span>
+                  )}
+                  <div
+                    onClick={() => {
+                      if (isEditing) {
+                        handleEditUsername();
+                      }
+                      setIsEditing((prev) => !prev);
+                    }}
+                    className="cursor-pointer"
+                  >
+                    {isEditing ? <Check size={16} /> : <Edit size={16} />}
+                  </div>
+                </div>
               </div>
             </div>
             <Separator className="bg-slate-300 dark:bg-zinc-700 mt-auto" />

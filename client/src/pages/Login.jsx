@@ -15,7 +15,6 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  let toastId;
 
   const resetForm = () => {
     setFormData({
@@ -32,32 +31,44 @@ const Login = () => {
     }));
   };
 
-  const handleResendVerificationEmail = async () => {
-    toastId = toast.loading("Resending verification email...");
+  // const handleResendVerificationEmail = async () => {
+  //   toastId = toast.loading("Resending verification email...");
+  //   navigate("/verify-email");
 
-    try {
-      const resendResponse = await axios.get(
-        "/api/user/resend-verification-email"
-      );
-      toast.success(resendResponse.data.message);
-      toast.dismiss(toastId);
-    } catch (error) {
-      toast.error(
-        error.response.data.message || "Failed to resend verification email."
-      );
-    }
-  };
+  //   try {
+  //     const resendResponse = await axios.get(
+  //       "/api/user/resend-verification-email"
+  //     );
+
+  //     if (resendResponse.data.error) {
+  //       return;
+  //     }
+
+  //     toast.success(resendResponse.data.message);
+  //   } catch (error) {
+  //     console.log(error);
+
+  //     toast.error(
+  //       error.response.status === 401
+  //         ? "Please Signup first to resend verification email."
+  //         : error.response.data.message,
+  //       {
+  //         duration: 5000,
+  //       }
+  //     );
+  //   } finally {
+  //     toast.dismiss(toastId);
+  //   }
+  // };
 
   const showLinkToast = () => {
-    toast.error(
+    const toastId = toast.error(
       <div>
         Your account is not verified. Please check your email for the
-        verification link.
-        <button
-          onClick={() => {
-            toast.dismiss();
-            handleResendVerificationEmail();
-          }}
+        verification link. or Go to{" "}
+        <Link
+          to="/verify-email"
+          onClick={() => toast.dismiss(toastId)}
           style={{
             color: "blue",
             textDecoration: "underline",
@@ -65,8 +76,8 @@ const Login = () => {
             marginRight: "10px",
           }}
         >
-          Resend verification email.
-        </button>
+          verify
+        </Link>
       </div>,
       {
         duration: 5000,

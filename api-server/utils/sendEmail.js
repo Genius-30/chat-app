@@ -28,7 +28,7 @@ const sendVerificationEmail = async (
   otp
 ) => {
   await transporter.sendMail({
-    from: `"ChatApp" <${process.env.EMAIL_USER}>`,
+    from: `ChatApp <${process.env.EMAIL_USER}>`,
     to: email,
     subject: "Verify your email address",
     html: emailTemplate

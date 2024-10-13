@@ -7,7 +7,7 @@ import {
   InputOTPSlot,
 } from "@/components/ui/input-otp";
 import axios from "@/api/axios";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { verifyUser } from "@/store/authSlice";
 
@@ -18,9 +18,7 @@ function VerifyEmail() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
+  const handleSubmit = async () => {
     if (pin.length !== 6) {
       setError("Your one-time password must be exactly 6 characters.");
       return;
@@ -55,11 +53,27 @@ function VerifyEmail() {
 
   const handleResendEmail = async () => {
     try {
+      const toastId = toast.loading("Resending verification email...");
       const response = await axios.get("/api/user/resend-verification-email");
+
+      toast.dismiss(toastId);
       toast.success(response.data.message || "Verification email resent!");
     } catch (error) {
-      toast.error(
-        error.response?.data?.message || "Failed to resend verification email."
+      const toastId = toast.error(
+        error.response.status === 401 ? (
+          <div>
+            Please Signup first to resend verification email.
+            <Link
+              onClick={() => toast.dismiss(toastId)}
+              to="/auth/signup"
+              className="ml-1 text-blue-500 underline"
+            >
+              Signup
+            </Link>
+          </div>
+        ) : (
+          "Failed to resend verification email."
+        )
       );
     }
   };

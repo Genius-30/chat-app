@@ -3,7 +3,7 @@ import "./App.css";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { useTheme } from "./context/themeContext";
 import { Moon, Sun } from "lucide-react";
-import { login, logout } from "./store/authSlice";
+import { login, logout, verifyUser } from "./store/authSlice";
 import axios from "@/api/axios";
 import Loader from "./components/Loader";
 import { useDispatch } from "react-redux";
@@ -35,6 +35,7 @@ const App = () => {
 
         const { user, accessToken } = res.data;
         dispatch(login(user, accessToken));
+        user?.isVerified && dispatch(verifyUser());
 
         if (!res.data.user) {
           dispatch(logout());

@@ -78,7 +78,11 @@ const Home = () => {
         className="h-[95%] w-[95%] xl:w-[80%] bg-gray-50 dark:bg-[#121212] shadow-[#a1a1a14f] shadow-lg dark:shadow-[#000000a8] rounded-lg overflow-hidden relative flex border-[1.3px] border-zinc-200 dark:border-zinc-950"
         onClick={handleClick}
       >
-        <Sidebar menu={menu} toggleMenu={toggleMenu} ref={menuRef} />
+        <Sidebar
+          menu={menu}
+          toggleMenu={toggleMenu}
+          ref={menuRef}
+        />
 
         <div className="chats-panel relative h-full basis-full sm:basis-[40%] lg:basis-[25%] ml-12 px-4">
           <h1 className="absolute z-[99] text-zinc-900 dark:text-gray-50 text-lg font-semibold top-[14px] left-5 select-none">
@@ -90,7 +94,7 @@ const Home = () => {
               onChatUpdate={handleChatUpdate}
               existingchats={allChats}
             />
-            <div className="all-chats-container h-full overflow-y-auto my-4 space-y-3">
+            <div className="all-chats-container h-full overflow-y-auto my-4 space-y-3 custom-scroller">
               {loading ? (
                 <ChatsSkeleton count={8} />
               ) : chats.length > 0 ? (

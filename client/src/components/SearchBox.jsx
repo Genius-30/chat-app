@@ -38,10 +38,6 @@ function SearchBox({ onSearch, onChatUpdate, existingchats }) {
         return;
       }
 
-      setOpen(false);
-      setSearchTerm("");
-      setUsers([]);
-
       onChatUpdate(res.data);
 
       toast.success(res.data.message);
@@ -95,7 +91,7 @@ function SearchBox({ onSearch, onChatUpdate, existingchats }) {
         <UserPlus size={20} />
       </div>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent onClick={() => setOpen(false)}>
+        <DialogContent className="max-h-[500px] flex flex-col justify-start">
           <DialogHeader>
             <DialogTitle>Manage Chat</DialogTitle>
             <DialogDescription>
@@ -109,7 +105,7 @@ function SearchBox({ onSearch, onChatUpdate, existingchats }) {
             className="mt-2"
           />
           {users.length > 0 && (
-            <ul className="mt-2">
+            <ul className="flex-1 mt-2 p-2 pl-0 overflow-y-scroll custom-scroller">
               {users.map((user) => {
                 const isExistingChat = existingchats.some(
                   (chatUser) => chatUser.users[0]._id === user._id
@@ -139,12 +135,9 @@ function SearchBox({ onSearch, onChatUpdate, existingchats }) {
               })}
             </ul>
           )}
-          {users.length === 0 && debouncedSearchTerm && (
+          {users.length === 0 && (
             <span className="mt-2 text-gray-500">No users found</span>
           )}
-          <DialogFooter>
-            <Button onClick={() => setOpen(false)}>Close</Button>
-          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
