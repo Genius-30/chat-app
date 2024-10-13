@@ -5,7 +5,7 @@ import axios from "@/api/axios";
 import Lottie from "lottie-react";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
-import { login } from "@/store/authSlice";
+import { login, verifyUser } from "@/store/authSlice";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -111,6 +111,7 @@ const Login = () => {
 
       const { user, accessToken } = response.data;
       dispatch(login(user, accessToken));
+      dispatch(verifyUser());
 
       navigate("/");
       toast.success("Login successful");

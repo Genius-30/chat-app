@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import axios from "@/api/axios";
 import Lottie from "lottie-react";
 import loadingAnim from "../animations/loadingAnim.json";
-import { logout } from "@/store/authSlice";
+import { logout, updateUser } from "@/store/authSlice";
 
 const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
   const buttonRef = ref;
@@ -63,35 +63,43 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
     const file = e.target.files[0];
     if (file) {
       setProfileImage(URL.createObjectURL(file));
+      updateUserProfile("", file);
     }
   };
 
-  const handleEditUsername = async () => {
-    if (isEditing) {
-      if (username && username !== user.username) {
-        try {
-          const res = await axios.put(
-            "/api/user/update-username",
-            {
-              username: username,
-            },
-            {
-              withCredentials: true,
-            }
-          );
-
-          if (res.data.error) {
-            toast.error(res.data.message);
-            return;
-          }
-
-          toast.success(res.data.message);
-        } catch (error) {
-          toast.error(error.message);
-        } finally {
-          setIsEditing(!isEditing);
-        }
+  const updateUserProfile = async (updatedUsername, avatar) => {
+    const toastId = toast.loading("Updating profile...");
+    try {
+      const formData = new FormData();
+      if (updatedUsername && updatedUsername !== user.username) {
+        formData.append("username", updatedUsername);
       }
+      if (avatar) formData.append("avatar", avatar);
+
+      if (formData.has("username") || formData.has("avatar")) {
+        const res = await axios.put("/api/user/update-user", formData, {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        if (res.data.error) {
+          toast.error(res.data.message);
+          return;
+        }
+
+        dispatch(
+          updateUser({
+            username: res.data.user.username,
+            avatar: res.data.user.avatar,
+          })
+        );
+        toast.success(res.data.message);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      toast.dismiss(toastId);
     }
   };
 
@@ -160,7 +168,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
           <img
             src={user.avatar}
             alt={`${user.username}'s avatar`}
-            className="h-8 aspect-square rounded-full"
+            className="h-8 aspect-square rounded-full object-cover object-center"
           />
           {menu && <p className="select-none">Profile</p>}
         </div>
@@ -197,12 +205,6 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
                       className="w-full bg-gray-300 dark:bg-[#323232] text-black dark:text-gray-50 border rounded-md px-2 py-1"
-                      onBlur={() => {
-                        setIsEditing(false);
-                        if (!username) {
-                          setUsername(user.username);
-                        }
-                      }}
                     />
                   ) : (
                     <span>{username || user.username}</span>
@@ -210,7 +212,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
                   <div
                     onClick={() => {
                       if (isEditing) {
-                        handleEditUsername();
+                        updateUserProfile(username);
                       }
                       setIsEditing((prev) => !prev);
                     }}

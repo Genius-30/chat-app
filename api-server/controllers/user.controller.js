@@ -1,6 +1,9 @@
 import User from "../models/user.model.js";
 import jwt from "jsonwebtoken";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import {
+  deleteFromCloudinary,
+  uploadOnCloudinary,
+} from "../utils/cloudinary.js";
 import {
   generateAccessToken,
   generateRefreshToken,
@@ -221,6 +224,41 @@ export const verifyEmail = async (req, res) => {
     await user.save();
 
     return res.status(200).json({ message: "Email verified" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// update user details
+export const updateUser = async (req, res) => {
+  try {
+    const { username, email } = req.body;
+    const avatar = req.file?.path;
+
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (username && user.username !== username) user.username = username;
+
+    if (email && user.email !== email) user.email = email;
+
+    const defaultAvatar =
+      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+
+    if (avatar && user.avatar !== avatar) {
+      if (user.avatar !== defaultAvatar) {
+        await deleteFromCloudinary(user.avatar);
+      }
+      const avatarUploadResult = await uploadOnCloudinary(avatar);
+      user.avatar = avatarUploadResult.secure_url;
+    }
+
+    await user.save();
+
+    return res.status(200).json({ message: "User updated", user });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

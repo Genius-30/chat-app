@@ -23,8 +23,14 @@ const authSlice = createSlice({
     verifyUser(state) {
       state.isVerified = true;
     },
+
+    updateUser(state, action) {
+      if (action.payload.username)
+        state.user.username = action.payload.username;
+      if (action.payload.avatar) state.user.avatar = action.payload.avatar;
+    },
   },
 });
 
-export const { login, logout, verifyUser } = authSlice.actions;
+export const { login, logout, verifyUser, updateUser } = authSlice.actions;
 export default authSlice.reducer;

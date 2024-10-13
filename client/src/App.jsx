@@ -7,7 +7,7 @@ import { login, logout, verifyUser } from "./store/authSlice";
 import axios from "@/api/axios";
 import Loader from "./components/Loader";
 import { useDispatch } from "react-redux";
-import toast, { Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
 // import { SwitchTransition, CSSTransition } from "react-transition-group";
 import routes from "./routesConfig";
 
@@ -69,7 +69,7 @@ const App = () => {
     >
       <button
         className="absolute right-3 top-4 p-2 rounded-xl shadow-lg shadow-[#a1a1a14f] dark:shadow-[#0b0b0b] dark:bg-[#121212] dark:text-white bg-gray-50 text-black z-[999]"
-        onClick={toggleTheme}
+        onClick={toggleTheme()}
       >
         {theme === "dark" ? <Moon /> : <Sun />}
       </button>
