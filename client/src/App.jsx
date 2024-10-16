@@ -68,8 +68,8 @@ const App = () => {
       className="relative min-h-screen bg-gray-50 dark:bg-black text-black dark:text-white"
     >
       <button
-        className="absolute right-3 top-4 p-2 rounded-xl shadow-lg shadow-[#a1a1a14f] dark:shadow-[#0b0b0b] dark:bg-[#121212] dark:text-white bg-gray-50 text-black z-[999]"
-        onClick={toggleTheme()}
+        className="absolute right-3 top-4 p-2 rounded-xl shadow-lg shadow-[#a1a1a14f] dark:shadow-[#0b0b0b] dark:bg-[#121212] dark:text-white bg-gray-50 text-black z-[10]"
+        onClick={toggleTheme}
       >
         {theme === "dark" ? <Moon /> : <Sun />}
       </button>

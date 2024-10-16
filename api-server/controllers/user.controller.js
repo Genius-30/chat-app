@@ -241,7 +241,15 @@ export const updateUser = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (username && user.username !== username) user.username = username;
+    // Check if the new username is already taken
+    if (username && user.username !== username) {
+      const existingUser = await User.findOne({ username });
+
+      if (existingUser && existingUser.isVerified) {
+        return res.status(400).json({ message: "Username already exists" });
+      }
+      user.username = username;
+    }
 
     if (email && user.email !== email) user.email = email;
 

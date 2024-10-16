@@ -24,6 +24,11 @@ const chatSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
+    avatar: {
+      type: String,
+      default:
+        "https://static.vecteezy.com/system/resources/thumbnails/012/574/694/small/people-linear-icon-squad-illustration-team-pictogram-group-logo-icon-illustration-vector.jpg",
+    },
   },
   {
     timestamps: true,

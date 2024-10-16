@@ -1,4 +1,5 @@
 import Chat from "../models/chat.model.js";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 // create or remove a chat
 export const toggleChat = async (req, res) => {
@@ -20,7 +21,7 @@ export const toggleChat = async (req, res) => {
       await Chat.findByIdAndDelete(existingChat._id);
       return res.status(200).json({
         message: "Chat removed successfully",
-        chatId: existingChat._id,
+        chat: { chatId: existingChat._id },
       });
     }
 
@@ -84,36 +85,47 @@ export const fetchChats = async (req, res) => {
 // create a group chat
 export const createGroupChat = async (req, res) => {
   try {
-    const { groupName, members } = req.body;
+    let { groupName, members } = req.body;
+    members = JSON.parse(members);
 
-    if (!groupName || !users) {
+    const avatar = req.file?.path;
+
+    if (!groupName || !members) {
       return res
         .status(400)
-        .json({ message: "Please provide a group name and users" });
+        .json({ message: "Please provide a group name and members" });
     }
 
-    const users = JSON.parse(members);
+    members.push(req.user.userId);
 
-    if (users.length < 2) {
+    if (members.length < 2) {
       return res
         .status(400)
-        .json({ message: "Please provide at least two users" });
+        .json({ message: "Please add at least two members in group" });
+    }
+
+    let avatarUploadResult;
+    if (avatar) {
+      avatarUploadResult = await uploadOnCloudinary(avatar);
     }
 
     const newGroupChat = await Chat.create({
       chatName: groupName,
-      users: [...users, req.user.userId],
+      users: members,
       isGroupChat: true,
       groupAdmin: req.user.userId,
+      avatar: avatarUploadResult && avatarUploadResult.secure_url,
     });
 
-    const createdGroupChat = await Chat.findById(newGroupChat._id)
-      .populate("users")
-      .populate("groudAdmin");
+    const createdGroupChat = await Chat.findById(newGroupChat._id).populate(
+      "users"
+    );
+    // .populate("groudAdmin");
 
-    return res
-      .status(201)
-      .json({ message: "Group chat created successfully!", createdGroupChat });
+    return res.status(201).json({
+      message: "Group chat created successfully!",
+      chat: createdGroupChat,
+    });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }

@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Outlet } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
-import SearchBox from "../components/SearchBox";
 import ChatCard from "../components/ChatCard";
 import axios from "@/api/axios";
 import toast from "react-hot-toast";
 import ChatsSkeleton from "@/components/ChatsSkeleton";
+import GroupChatModal from "@/components/GroupChatModal";
+import ManageChatModal from "@/components/ManageChatModal";
 
 const Home = () => {
   const [allChats, setAllChats] = useState([]);
@@ -67,8 +68,23 @@ const Home = () => {
       setAllChats((prev) => prev.filter((c) => c._id !== chat.chatId));
       setChats((prev) => prev.filter((c) => c._id !== chat.chatId));
     } else {
-      setAllChats((prev) => [...prev, chat.chat]);
-      setChats((prev) => [...prev, chat.chat]);
+      setAllChats((prev) => [...prev, chat]);
+      setChats((prev) => [...prev, chat]);
+    }
+  };
+
+  const getChatDetails = (chat) => {
+    if (chat.isGroupChat) {
+      return {
+        chatName: chat.chatName,
+        avatar: chat.avatar,
+      };
+    } else {
+      const user = chat.users[0];
+      return {
+        chatName: user.username,
+        avatar: user.avatar,
+      };
     }
   };
 
@@ -78,39 +94,41 @@ const Home = () => {
         className="h-[95%] w-[95%] xl:w-[80%] bg-gray-50 dark:bg-[#121212] shadow-[#a1a1a14f] shadow-lg dark:shadow-[#000000a8] rounded-lg overflow-hidden relative flex border-[1.3px] border-zinc-200 dark:border-zinc-950"
         onClick={handleClick}
       >
-        <Sidebar
-          menu={menu}
-          toggleMenu={toggleMenu}
-          ref={menuRef}
-        />
+        <Sidebar menu={menu} toggleMenu={toggleMenu} ref={menuRef} />
 
-        <div className="chats-panel relative h-full basis-full sm:basis-[40%] lg:basis-[25%] ml-12 px-4">
-          <h1 className="absolute z-[99] text-zinc-900 dark:text-gray-50 text-lg font-semibold top-[14px] left-5 select-none">
-            Chat App
-          </h1>
-          <div className="user-chats h-full flex-1 flex flex-col pt-12">
-            <SearchBox
-              onSearch={handleSearch}
-              onChatUpdate={handleChatUpdate}
-              existingchats={allChats}
-            />
+        <div className="chats-panel h-full basis-full sm:basis-[40%] lg:basis-[25%] ml-12 px-4">
+          <div className="w-full flex items-center justify-between my-4">
+            <h1 className="text-zinc-900 dark:text-gray-50 text-lg font-semibold select-none">
+              Chat App
+            </h1>
+            <GroupChatModal onChatUpdate={handleChatUpdate} />
+          </div>
+          <div className="user-chats h-full flex-1 flex flex-col">
+            <div className="search-box h-[40px] w-full flex items-center overflow-hidden gap-x-1">
+              <input
+                type="text"
+                placeholder="Search here..."
+                className="h-full w-full bg-slate-200 dark:bg-[#1f1f1f] rounded-md outline-none px-4"
+                onChange={(e) => {
+                  handleSearch(e.target.value);
+                }}
+              />
+              <ManageChatModal
+                onChatUpdate={handleChatUpdate}
+                existingChats={allChats}
+              />
+            </div>
             <div className="all-chats-container h-full overflow-y-auto my-4 space-y-3 custom-scroller">
               {loading ? (
                 <ChatsSkeleton count={8} />
               ) : chats.length > 0 ? (
                 chats.map((chat) => {
-                  const isGroupChat = chat.isGroupChat;
-                  const chatName = isGroupChat
-                    ? chat.chatName
-                    : chat.users[0].username;
-                  const chatAvatar = isGroupChat
-                    ? "/path/to/group-avatar.png"
-                    : chat.users[0].avatar;
+                  const { chatName, avatar } = getChatDetails(chat);
 
                   return (
                     <ChatCard
                       key={chat._id}
-                      avatar={chatAvatar}
+                      avatar={avatar}
                       username={chatName}
                       // msgStatus={chat.msgStatus}
                       // lastSeen={chat.lastSeen}

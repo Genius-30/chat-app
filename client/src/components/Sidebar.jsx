@@ -97,7 +97,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
         toast.success(res.data.message);
       }
     } catch (error) {
-      toast.error(error.message);
+      toast.error(error.response.data.message || "Invalid request");
     } finally {
       toast.dismiss(toastId);
     }
