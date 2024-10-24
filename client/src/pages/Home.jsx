@@ -1,20 +1,29 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Outlet } from "react-router-dom";
-import Sidebar from "../components/Sidebar";
-import ChatCard from "../components/ChatCard";
+import { Outlet, useNavigate, useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
 import axios from "@/api/axios";
 import toast from "react-hot-toast";
+import Sidebar from "../components/Sidebar";
+import ChatCard from "../components/ChatCard";
 import ChatsSkeleton from "@/components/ChatsSkeleton";
 import GroupChatModal from "@/components/GroupChatModal";
 import ManageChatModal from "@/components/ManageChatModal";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
-const Home = () => {
+export default function Home() {
   const [allChats, setAllChats] = useState([]);
   const [chats, setChats] = useState([]);
   const [menu, setMenu] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [selectedChatId, setSelectedChatId] = useState(null);
+  const [showChatList, setShowChatList] = useState(true);
 
   const menuRef = useRef(null);
+  const currentUser = useSelector((state) => state.auth.user);
+  const navigate = useNavigate();
+  const { chatId } = useParams();
 
   const toggleMenu = () => {
     setMenu(!menu);
@@ -42,7 +51,7 @@ const Home = () => {
   const fetchChats = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("/api/chat/fetch");
+      const res = await axios.get("/api/chat");
 
       if (res.data.error) {
         toast.error(res.data.error);
@@ -63,6 +72,16 @@ const Home = () => {
     fetchChats();
   }, []);
 
+  useEffect(() => {
+    if (chatId) {
+      setSelectedChatId(chatId);
+      setShowChatList(false);
+    } else {
+      setSelectedChatId(null);
+      setShowChatList(true);
+    }
+  }, [chatId]);
+
   const handleChatUpdate = (chat) => {
     if (chat.chatId) {
       setAllChats((prev) => prev.filter((c) => c._id !== chat.chatId));
@@ -73,38 +92,31 @@ const Home = () => {
     }
   };
 
-  const getChatDetails = (chat) => {
-    if (chat.isGroupChat) {
-      return {
-        chatName: chat.chatName,
-        avatar: chat.avatar,
-      };
-    } else {
-      const user = chat.users[0];
-      return {
-        chatName: user.username,
-        avatar: user.avatar,
-      };
-    }
-  };
-
   return (
-    <div className="max-h-screen h-screen w-full bg-gray-100 dark:bg-black flex items-center justify-center">
+    <div className="h-screen w-full bg-gray-100 dark:bg-black flex items-center justify-center">
       <div
-        className="h-[95%] w-[95%] xl:w-[80%] bg-gray-50 dark:bg-[#121212] shadow-[#a1a1a14f] shadow-lg dark:shadow-[#000000a8] rounded-lg overflow-hidden relative flex border-[1.3px] border-zinc-200 dark:border-zinc-950"
+        className="relative h-full w-full sm:h-[95%] sm:w-[95%] xl:w-[80%] bg-gray-50 dark:bg-[#121212] shadow-[#a1a1a14f] shadow-lg dark:shadow-[#000000a8] sm:rounded-lg overflow-hidden flex flex-row"
         onClick={handleClick}
       >
+        {/* Sidebar */}
         <Sidebar menu={menu} toggleMenu={toggleMenu} ref={menuRef} />
 
-        <div className="chats-panel h-full basis-full sm:basis-[40%] lg:basis-[25%] ml-12 px-4">
-          <div className="w-full flex items-center justify-between my-4">
-            <h1 className="text-zinc-900 dark:text-gray-50 text-lg font-semibold select-none">
-              Chat App
-            </h1>
-            <GroupChatModal onChatUpdate={handleChatUpdate} />
-          </div>
-          <div className="user-chats h-full flex-1 flex flex-col">
-            <div className="search-box h-[40px] w-full flex items-center overflow-hidden gap-x-1">
+        {/* Chats Panel */}
+        <div
+          className={`chats-panel h-full sm:w-[30%] lg:w-[24%] flex-shrink-0 ${
+            showChatList ? "block" : "hidden sm:block"
+          } ml-12`}
+        >
+          <div className="h-full flex flex-col p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h1 className="text-zinc-900 dark:text-gray-50 text-lg font-semibold select-none">
+                Chat App
+              </h1>
+              <GroupChatModal onChatUpdate={handleChatUpdate} />
+            </div>
+
+            {/* Search Box */}
+            <div className="search-box h-10 w-full flex items-center overflow-hidden gap-x-1 mb-4">
               <input
                 type="text"
                 placeholder="Search here..."
@@ -118,22 +130,24 @@ const Home = () => {
                 existingChats={allChats}
               />
             </div>
-            <div className="all-chats-container h-full overflow-y-auto my-4 space-y-3 custom-scroller">
+
+            {/* Chats List */}
+            <div className="flex-grow overflow-y-auto overflow-x-hidden space-y-1 custom-scroller">
               {loading ? (
                 <ChatsSkeleton count={8} />
               ) : chats.length > 0 ? (
                 chats.map((chat) => {
-                  const { chatName, avatar } = getChatDetails(chat);
-
                   return (
                     <ChatCard
                       key={chat._id}
-                      avatar={avatar}
-                      username={chatName}
-                      // msgStatus={chat.msgStatus}
-                      // lastSeen={chat.lastSeen}
-                      // latestMsg={chat.latestMessage}
-                      // msgCount={chat.msgCount}
+                      chat={chat}
+                      onClick={() => {
+                        setSelectedChatId(chat._id);
+                        navigate(`/chat/${chat._id}`);
+                        setShowChatList(false);
+                      }}
+                      selected={selectedChatId === chat._id}
+                      currentUserId={currentUser._id}
                     />
                   );
                 })
@@ -144,14 +158,43 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="divider h-full w-[1.3px] bg-zinc-200 dark:bg-zinc-950"></div>
+        {/* Separator - Hidden on smaller screens */}
+        <Separator className="separator hidden sm:block h-full w-[1px] flex-shrink-0" />
 
-        <div className="chat h-full basis-0 sm:flex-1">
-          <Outlet />
+        {/* Chat Panel */}
+        <div
+          className={`chat h-full flex-grow ${
+            showChatList ? "hidden sm:flex" : "flex"
+          } items-center justify-center relative ml-12 sm:ml-0`}
+        >
+          {selectedChatId ? (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="absolute top-4 left-4 sm:hidden"
+                onClick={() => setShowChatList(true)}
+              >
+                <ArrowLeft className="h-6 w-6" />
+              </Button>
+              <div className="h-full w-full">
+                <Outlet />
+              </div>
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center h-full w-full bg-gray-100 dark:bg-[#121212]">
+              <img
+                src="https://cdni.iconscout.com/illustration/premium/thumb/chatbot-support-illustration-download-in-svg-png-gif-file-formats--call-logo-customer-business-activities-pack-illustrations-2283917.png"
+                alt=""
+                className="h-52 w-52 md:h-72 md:w-72 object-contain"
+              />
+              <p className="text-lg text-gray-600 dark:text-gray-300">
+                Please select a chat to start messaging.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
-};
-
-export default Home;
+}

@@ -1,57 +1,65 @@
-import { Check, CheckCheck } from "lucide-react";
 import React from "react";
+import { Check, CheckCheck } from "lucide-react";
 
-function ChatCard({
-  avatar,
-  username,
-  latestMsg,
-  msgStatus,
-  lastSeen,
-  msgCount,
-}) {
+export default function ChatCard({ chat, onClick, selected, currentUserId }) {
   const renderCheckIcon = () => {
-    switch (msgStatus) {
+    switch (chat.latestMessage.status) {
       case "sent":
-        return <Check size={18} className="text-gray-500 dark:text-gray-400" />;
+        return <Check size={16} className="text-gray-500 dark:text-gray-400" />;
       case "delivered":
         return (
-          <CheckCheck size={18} className="text-gray-500 dark:text-gray-400" />
+          <CheckCheck size={16} className="text-gray-500 dark:text-gray-400" />
         );
       case "seen":
         return (
-          <CheckCheck size={18} className="text-blue-500 dark:text-blue-400" />
+          <CheckCheck size={16} className="text-blue-500 dark:text-blue-400" />
         );
       default:
         return null;
     }
   };
 
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return null;
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
-    <div className="chat-card h-[60px] flex items-center gap-x-2 hover:bg-slate-300 dark:hover:bg-zinc-700 rounded-md transition-color ease-linear duration-100 select-none cursor-pointer p-2">
+    <div
+      onClick={onClick}
+      className={`chat-card flex items-center gap-x-2 hover:bg-gray-300 dark:hover:bg-zinc-700 rounded-md transition-color ease-linear duration-100 select-none cursor-pointer p-2 ${
+        selected ? "bg-gray-200 dark:bg-zinc-800" : "bg-transparent"
+      }`}
+    >
       <img
-        src={avatar}
-        alt={`${username}'s avatar`}
-        className="h-full aspect-square rounded-full object-cover object-center"
+        src={chat.isGroupChat ? chat.avatar : chat.users[0].avatar}
+        alt={`${
+          chat.isGroupChat ? chat.chatName : chat.users[0].username
+        }'s avatar`}
+        className="h-auto w-[20%] aspect-square rounded-full object-cover object-center"
       />
-      <div className="chat-card-details flex flex-col justify-between flex-1">
+      <div className="chat-card-details w-[75%] flex flex-col justify-between flex-1">
         <div className="chat-card-top flex items-center justify-between">
-          <h3 className="font-semibold truncate max-w-[120px]">{username}</h3>
-          <div className="flex items-center gap-x-1 text-xs text-gray-500 dark:text-gray-400">
-            {renderCheckIcon()}
-            <p>{lastSeen && lastSeen}</p>
-          </div>
+          <h3 className="font-semibold text-sm truncate flex-1">
+            {chat.isGroupChat ? chat.chatName : chat.users[0].username}
+          </h3>
+          <p className="max-w-fit text-xs text-gray-700 dark:text-zinc-400">
+            {formatTimestamp(chat.latestMessage.timestamp)}
+          </p>
         </div>
-        <div className="chat-card-bottom flex items-center justify-between text-sm">
-          <p className="truncate max-w-[150px]">{latestMsg}</p>
-          {msgCount > 0 && (
-            <span className="bg-blue-500 text-white rounded-full text-xs h-[18px] w-[18px] flex items-center justify-center">
-              {msgCount}
+        <div className="chat-card-bottom flex items-center justify-between text-xs text-gray-700 dark:text-zinc-400 mt-1">
+          {renderCheckIcon()}
+          <p className={`truncate max-w-full mx-[2px] mr-auto`}>
+            {chat.latestMessage.content}
+          </p>
+          {/* {msgCount > 0 && (
+            <span className="h-[18px] w-[18px] bg-blue-500 text-white rounded-full text-xs flex items-center justify-center ml-2">
+              {msgCount}2
             </span>
-          )}
+          )} */}
         </div>
       </div>
     </div>
   );
 }
-
-export default ChatCard;

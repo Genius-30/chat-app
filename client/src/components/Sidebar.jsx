@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useRef, useState } from "react";
-import { Check, Edit, MenuIcon, MessageSquareText, X } from "lucide-react";
+import { Check, Edit, Home, MenuIcon, X } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Separator } from "./ui/separator";
 import { useDispatch, useSelector } from "react-redux";
@@ -129,7 +129,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
 
   return (
     <div
-      className={`sidebar z-[49] h-full flex flex-col absolute bg-slate-200 dark:bg-zinc-800 py-4 rounded-tr-lg rounded-br-lg ${menuClasses}`}
+      className={`sidebar absolute z-[49] h-full flex flex-col bg-slate-200 dark:bg-zinc-800 py-4 ${menuClasses}`}
       ref={buttonRef}
     >
       <div
@@ -151,8 +151,8 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
             } ${linkContainerClasses}`
           }
         >
-          <MessageSquareText strokeWidth={1.5} size={20} />
-          {menu && <p className="select-none">Chats</p>}
+          <Home strokeWidth={1.5} size={20} />
+          {menu && <p className="select-none">Home</p>}
         </NavLink>
       </div>
       <div className="relative w-full mt-auto">

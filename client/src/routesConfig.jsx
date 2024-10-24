@@ -37,7 +37,7 @@ const routes = [
     ),
     children: [
       {
-        path: "chat/:userId",
+        path: "chat/:chatId",
         element: <UserChat />,
       },
     ],

@@ -16,9 +16,22 @@ const chatSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
-    lastestMessage: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Message",
+    latestMessage: {
+      content: {
+        type: String,
+        default: "",
+      },
+      sender: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+      status: {
+        type: String,
+        enum: ["sent", "delivered", "seen"],
+      },
+      timestamp: {
+        type: Date,
+      },
     },
     groupAdmin: {
       type: mongoose.Schema.Types.ObjectId,

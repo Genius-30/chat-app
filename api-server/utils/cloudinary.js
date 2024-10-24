@@ -1,7 +1,6 @@
 import { v2 as cloudinary } from "cloudinary";
-import fs from "fs";
-import dotenv from "dotenv";
-dotenv.config();
+import { configDotenv } from "dotenv";
+configDotenv();
 
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,20 +8,26 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadOnCloudinary = async (localFilePath) => {
+// Upload any type of file to Cloudinary
+const uploadOnCloudinary = async (fileBuffer) => {
   try {
-    if (!localFilePath) return null;
-
-    //Upload file
-    const uploadResult = await cloudinary.uploader.upload(localFilePath, {
-      resource_type: "image",
+    // Use resource_type 'auto' to handle various file types
+    const uploadResult = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { resource_type: "auto" }, // Auto-detect the type of resource (image, video, raw, etc.)
+        (error, result) => {
+          if (error) {
+            reject(error);
+          } else {
+            resolve(result);
+          }
+        }
+      );
+      stream.end(fileBuffer); // Send the file buffer to Cloudinary
     });
-
-    fs.unlinkSync(localFilePath);
 
     return uploadResult;
   } catch (error) {
-    fs.unlinkSync(localFilePath);
     console.error("Error occurred while uploading file on Cloudinary: ", error);
     return null;
   }
@@ -31,7 +36,7 @@ const uploadOnCloudinary = async (localFilePath) => {
 const deleteFromCloudinary = async (url) => {
   try {
     const publicId = url.split("/").pop().split(".")[0];
-    await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
+    await cloudinary.uploader.destroy(publicId, { resource_type: "auto" });
   } catch (error) {
     console.error(
       "Error occurred while deleting file from Cloudinary: ",

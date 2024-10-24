@@ -1,17 +1,17 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
-import "./App.css";
 import { Route, Routes, useLocation } from "react-router-dom";
-import { useTheme } from "./context/themeContext";
-import { Moon, Sun } from "lucide-react";
-import { login, logout, verifyUser } from "./store/authSlice";
-import axios from "@/api/axios";
-import Loader from "./components/Loader";
 import { useDispatch } from "react-redux";
+import { Moon, Sun } from "lucide-react";
 import { Toaster } from "react-hot-toast";
-// import { SwitchTransition, CSSTransition } from "react-transition-group";
+import axios from "@/api/axios";
+import { useTheme } from "./context/themeContext";
+import { login, logout, verifyUser } from "./store/authSlice";
+import Loader from "./components/Loader";
 import routes from "./routesConfig";
+import { Button } from "@/components/ui/button";
+import "./App.css";
 
-const App = () => {
+export default function App() {
   const { theme, toggleTheme } = useTheme();
   const [loader, setLoader] = useState(true);
   const dispatch = useDispatch();
@@ -48,31 +48,30 @@ const App = () => {
     };
 
     fetchUser();
-  }, [dispatch]);
+  }, [dispatch, location.pathname]);
 
   if (loader) {
     return <Loader />;
   }
 
   return (
-    // <SwitchTransition component={null}>
-    // <CSSTransition
-    //   key={location.pathname}
-    //   nodeRef={nodeRef}
-    //   className="fade"
-    //   timeout={300}
-    //   unmountOnExit
-    // >
     <div
       ref={nodeRef}
       className="relative min-h-screen bg-gray-50 dark:bg-black text-black dark:text-white"
     >
-      <button
-        className="absolute right-3 top-4 p-2 rounded-xl shadow-lg shadow-[#a1a1a14f] dark:shadow-[#0b0b0b] dark:bg-[#121212] dark:text-white bg-gray-50 text-black z-[10]"
+      <Button
+        variant="outline"
+        size="icon"
         onClick={toggleTheme}
+        className="fixed right-4 bottom-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 z-50"
       >
-        {theme === "dark" ? <Moon /> : <Sun />}
-      </button>
+        {theme === "dark" ? (
+          <Sun className="h-[1.2rem] w-[1.2rem]" />
+        ) : (
+          <Moon className="h-[1.2rem] w-[1.2rem]" />
+        )}
+        <span className="sr-only">Toggle theme</span>
+      </Button>
       <Toaster />
       <Suspense fallback={<Loader />}>
         <Routes location={location}>
@@ -91,9 +90,5 @@ const App = () => {
         </Routes>
       </Suspense>
     </div>
-    //   </CSSTransition>
-    // </SwitchTransition>
   );
-};
-
-export default App;
+}

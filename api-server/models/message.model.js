@@ -6,28 +6,28 @@ const MessageSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
     },
-
     text: {
       type: String,
       default: "",
     },
-
-    media: {
-      type: mongoose.Schema.Types.Mixed,
-    },
-
+    files: [
+      {
+        filename: String,
+        path: String,
+        mimetype: String,
+      },
+    ],
     isMixed: {
       type: Boolean,
       default: false,
     },
-
     chat: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Chat",
     },
   },
   {
-    timeStamps: true,
+    timestamps: true,
   }
 );
 
