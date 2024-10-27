@@ -16,7 +16,6 @@ export default function App() {
   const [loader, setLoader] = useState(true);
   const dispatch = useDispatch();
   const location = useLocation();
-
   const nodeRef = useRef(null);
 
   const authPaths = ["/auth/login", "/auth/signup"];
@@ -63,7 +62,7 @@ export default function App() {
         variant="outline"
         size="icon"
         onClick={toggleTheme}
-        className="fixed right-4 bottom-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 z-50"
+        className={`fixed right-4 bottom-4 rounded-lg shadow-lg hover:shadow-xl z-50`}
       >
         {theme === "dark" ? (
           <Sun className="h-[1.2rem] w-[1.2rem]" />

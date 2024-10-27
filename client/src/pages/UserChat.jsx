@@ -9,8 +9,9 @@ import {
   ArrowLeft,
   AudioLinesIcon,
   Camera,
+  FileDownIcon,
   FileIcon,
-  GitPullRequestDraftIcon,
+  Loader2,
   Mic,
   MoreVertical,
   Paperclip,
@@ -22,10 +23,22 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 import CustomLoader from "@/components/Loader";
+import { useSelector } from "react-redux";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function UserChat() {
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioBlob, setAudioBlob] = useState(null);
+  const mediaRecorderRef = useRef(null);
+
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [sendingMessage, setSendingMessage] = useState(false);
   const [chat, setChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [inputMessage, setInputMessage] = useState("");
@@ -34,6 +47,10 @@ export default function UserChat() {
   const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
+  const [recordingDuration, setRecordingDuration] = useState(0);
+  const recordingIntervalRef = useRef(null);
+
+  const { _id: currentUserId } = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     const fetchChat = async () => {
@@ -75,10 +92,49 @@ export default function UserChat() {
     setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
   };
 
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorderRef.current = new MediaRecorder(stream);
+      const chunks = [];
+
+      mediaRecorderRef.current.ondataavailable = (e) => chunks.push(e.data);
+      mediaRecorderRef.current.onstop = () => {
+        const blob = new Blob(chunks, { type: "audio/webm" });
+        setAudioBlob(blob);
+        setFiles([
+          ...files,
+          new File([blob], "audio_message.webm", { type: "audio/webm" }),
+        ]);
+      };
+
+      mediaRecorderRef.current.start();
+      setIsRecording(true);
+      setRecordingDuration(0);
+      recordingIntervalRef.current = setInterval(() => {
+        setRecordingDuration((prev) => prev + 1);
+      }, 1000);
+    } catch (error) {
+      console.error("Error accessing microphone:", error);
+      toast.error(
+        "Unable to access microphone. Please check your browser settings."
+      );
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      clearInterval(recordingIntervalRef.current);
+    }
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim() && files.length === 0) return;
 
+    setSendingMessage(true);
     const formData = new FormData();
     formData.append("text", inputMessage);
     files.forEach((file) => formData.append("files", file));
@@ -95,8 +151,11 @@ export default function UserChat() {
       setMessages((prevMessages) => [...prevMessages, res.data]);
       setInputMessage("");
       setFiles([]);
+      setAudioBlob(null);
     } catch (error) {
       toast.error(error.response.data.message || "Error sending message");
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -136,75 +195,63 @@ export default function UserChat() {
 
   const renderFilePreview = (file) => {
     const fileUrl = file.path || URL.createObjectURL(file);
+    const fileType = file.mimetype ? file.mimetype.split("/")[0] : "unknown";
 
-    // Image files
-    if (file.mimetype.startsWith("image/")) {
-      return (
-        <img
-          src={fileUrl}
-          alt={file.filename}
-          className="max-w-52 h-auto rounded-md mb-2"
-        />
-      );
-    }
-
-    // PDF files
-    if (file.mimetype === "application/pdf") {
-      return (
-        <div className="flex items-center space-x-2 mb-2">
-          <embed
-            src={fileUrl}
-            type="application/pdf"
-            className="w-52 h-auto rounded-md"
-          />
-          <a
-            href={fileUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-sm"
-          >
-            {file.filename}
-          </a>
-        </div>
-      );
-    }
-
-    // Audio files
-    if (file.mimetype.startsWith("audio/")) {
-      return (
-        <div className="flex items-center space-x-2 mb-2">
-          <audio controls src={fileUrl} className="max-w-full">
+    return (
+      <div
+        className={`w-48 sm:w-64 ${
+          fileType === "image" || fileType !== "video"
+            ? "h-auto flex-row items-center space-x-1"
+            : "h-32 sm:h-36 flex-col items-start"
+        } rounded-md overflow-hidden flex mb-2`}
+      >
+        {fileType === "image" && (
+          <Dialog>
+            <DialogTrigger asChild>
+              <img
+                src={fileUrl}
+                alt={file.filename || "Uploaded image"}
+                className="w-full h-full object-cover cursor-pointer"
+              />
+            </DialogTrigger>
+            <DialogContent
+              aria-describedby={undefined}
+              className="max-h-[90vh] max-w-[90vw] sm:max-h-[70vh] sm:max-w-[70vh]"
+            >
+              <DialogTitle className="hidden"></DialogTitle>
+              <img
+                src={fileUrl}
+                alt={file.filename || "Uploaded image"}
+                className="w-full h-auto object-cover rounded-md"
+              />
+            </DialogContent>
+          </Dialog>
+        )}
+        {fileType === "audio" && (
+          <audio controls className="w-full">
+            <source src={fileUrl} type={file.type} />
             Your browser does not support the audio element.
           </audio>
-          <span className="text-sm">{file.filename}</span>
-        </div>
-      );
-    }
-
-    // Video files
-    if (file.mimetype.startsWith("video/")) {
-      return (
-        <div className="max-w-64 flex flex-col items-start space-y-2">
-          <video controls src={fileUrl} className="w-full h-auto rounded-md">
+        )}
+        {fileType === "video" && (
+          <video controls className="w-full h-full">
+            <source src={fileUrl} type={file.type} />
             Your browser does not support the video tag.
           </video>
-          <span className="text-sm">{file.filename}</span>
-        </div>
-      );
-    }
-
-    // Fallback for other file types
-    return (
-      <div className="flex items-center space-x-2 mb-2">
-        <FileIcon className="h-6 w-6" />
-        <a
-          href={fileUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm"
-        >
-          {file.filename}
-        </a>
+        )}
+        {fileType !== "image" &&
+          fileType !== "audio" &&
+          fileType !== "video" && (
+            <a
+              href={fileUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex items-center space-x-1"
+            >
+              <FileDownIcon className="h-8 w-8d text-gray-500 dark:text-gray-400" />
+              <p>{file.filename}</p>
+            </a>
+          )}
       </div>
     );
   };
@@ -227,8 +274,12 @@ export default function UserChat() {
     );
   }
 
-  const otherUser = chat.isGroupChat ? null : chat.users[0];
+  const otherUsers = chat.isGroupChat
+    ? chat.users.filter((user) => user._id !== currentUserId)
+    : chat.users[0];
   const groupedMessages = groupMessagesByDate(messages);
+  const avatar = chat.isGroupChat ? chat.avatar : otherUsers?.avatar;
+  const username = chat.isGroupChat ? chat.chatName : otherUsers?.username;
 
   return (
     <div className="flex flex-col h-full w-full bg-gray-100 dark:bg-[#121212]">
@@ -241,18 +292,29 @@ export default function UserChat() {
         >
           <ArrowLeft className="h-6 w-6" />
         </Button>
-        <Avatar className="h-10 w-10 mr-3">
-          <AvatarImage
-            src={chat.isGroupChat ? chat.avatar : otherUser?.avatar}
-            className="rounded-full"
-          />
-          <AvatarFallback>
-            {chat.isGroupChat ? chat.chatName[0] : otherUser?.username[0]}
-          </AvatarFallback>
-        </Avatar>
+        <Dialog>
+          <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+            <Avatar className="h-10 w-10 mr-3">
+              <AvatarImage src={avatar} className="rounded-full" />
+              <AvatarFallback>{`${username}'s avatar`}</AvatarFallback>
+            </Avatar>
+          </DialogTrigger>
+          <DialogContent
+            aria-describedby={undefined}
+            className="max-h-[90vh] max-w-[90vw] sm:max-h-[70vh] sm:max-w-[70vh]"
+          >
+            <DialogTitle className="hidden">{username}</DialogTitle>
+            <img
+              src={avatar}
+              alt={`${username}'s avatar`}
+              className="w-full h-full object-cover rounded-lg"
+            />
+          </DialogContent>
+        </Dialog>
+
         <div className="flex-grow">
           <h2 className="font-semibold">
-            {chat.isGroupChat ? chat.chatName : otherUser?.username}
+            {chat.isGroupChat ? chat.chatName : otherUsers?.username}
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             {chat.isGroupChat ? `${chat.users.length} participants` : "Online"}
@@ -271,7 +333,7 @@ export default function UserChat() {
         </div>
       </header>
 
-      <main className="flex-grow overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-[#1A1A1A] custom-scroller">
+      <main className="flex-grow overflow-y-auto p-2 sm:p-4 space-y-4 bg-gray-50 dark:bg-[#1A1A1A] custom-scroller">
         {groupedMessages.map(({ date, messages }, groupIndex) => (
           <div key={groupIndex}>
             <div className="sticky top-0 z-10 flex justify-center mb-4">
@@ -283,14 +345,14 @@ export default function UserChat() {
               <div
                 key={message._id}
                 className={` flex ${
-                  message.sender._id !== otherUser._id
+                  message.sender._id !== otherUsers._id
                     ? "justify-end"
                     : "justify-start"
                 } mt-2`}
               >
                 <div
-                  className={`max-w-[60%] px-2 py-2 rounded-lg shadow-sm ${
-                    message.sender._id !== otherUser._id
+                  className={`max-w-[60%] p-2 rounded-lg shadow-sm ${
+                    message.sender._id !== otherUsers._id
                       ? "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                       : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
                   }`}
@@ -321,27 +383,25 @@ export default function UserChat() {
             const fileType = file.type.split("/")[0]; // Get the type (image, audio, video, etc.)
 
             return (
-              <div key={index} className="relative">
+              <div key={index} title={file.name} className="h-16 w-16 relative">
                 {fileType === "image" ? (
                   <img
                     src={URL.createObjectURL(file)}
                     alt={`Selected file ${index + 1}`}
-                    className="h-16 w-16 object-cover rounded-md"
+                    className="h-full w-full object-cover rounded-md"
                   />
-                ) : fileType === "audio" ? (
-                  <div className="h-16 w-16 flex items-center justify-center bg-gray-200 rounded-md">
-                    <AudioLinesIcon className="h-8 w-8" />{" "}
-                    {/* Replace with your audio icon */}
-                  </div>
-                ) : fileType === "video" ? (
-                  <div className="h-16 w-16 flex items-center justify-center bg-gray-200 rounded-md">
-                    <VideoIcon className="h-8 w-8" />{" "}
-                    {/* Replace with your video icon */}
-                  </div>
                 ) : (
-                  <div className="h-16 w-16 flex items-center justify-center bg-gray-200 rounded-md">
-                    <GitPullRequestDraftIcon className="h-8 w-8" />{" "}
-                    {/* Replace with your PDF icon */}
+                  <div className="h-full w-full flex flex-col items-center justify-center space-y-1 bg-gray-200 dark:bg-zinc-700 rounded-md p-1">
+                    {fileType === "audio" ? (
+                      <AudioLinesIcon className="h-7 w-7" />
+                    ) : fileType === "video" ? (
+                      <VideoIcon className="h-7 w-7" />
+                    ) : (
+                      <FileIcon className="h-7 w-7" />
+                    )}
+                    <span className="w-full text-xs text-gray-500 dark:text-gray-400 truncate">
+                      {file.name}
+                    </span>
                   </div>
                 )}
                 <button
@@ -367,6 +427,7 @@ export default function UserChat() {
             onChange={handleFileChange}
             multiple
             className="hidden"
+            accept="image/*, audio/*, video/*"
           />
           <input
             type="file"
@@ -392,22 +453,61 @@ export default function UserChat() {
           >
             <Camera className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </Button>
-          <Input
-            type="text"
-            placeholder="Type a message"
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            className="flex-grow border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#2A2A2A] text-gray-900 dark:text-white transition-none"
-          />
+          {isRecording ? (
+            <div className="flex-grow flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 rounded-md px-3 py-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Recording... {recordingDuration}s
+              </span>
+              <div className="flex-grow">
+                <div className="w-full h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-red-500 rounded-full"
+                    style={{
+                      width: `${((recordingDuration % 60) / 60) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          ) : (
+            <Input
+              type="text"
+              placeholder="Type a message"
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              className="flex-grow border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#2A2A2A] text-gray-900 dark:text-white transition-none"
+            />
+          )}
+          <Button
+            type="button"
+            size="icon"
+            className={`${
+              isRecording
+                ? "bg-red-500 hover:bg-red-600"
+                : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+            } transition-none`}
+            onClick={isRecording ? stopRecording : startRecording}
+          >
+            <Mic
+              className={`h-5 w-5 ${
+                isRecording ? "text-white" : "text-gray-600 dark:text-gray-300"
+              }`}
+            />
+          </Button>
           <Button
             type="submit"
             size="icon"
-            className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-none"
+            disabled={
+              (!inputMessage && files.length === 0 && !audioBlob) ||
+              sendingMessage
+            }
           >
-            {inputMessage || files.length > 0 ? (
-              <Send className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+            {sendingMessage ? (
+              <Loader2 className="h-5 w-5 text-gray-600 dark:text-gray-300 animate-spin" />
             ) : (
-              <Mic className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+              <Send className="h-5 w-5 text-gray-600 dark:text-gray-300" />
             )}
           </Button>
         </form>

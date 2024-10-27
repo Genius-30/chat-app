@@ -103,7 +103,7 @@ export default function Home() {
 
         {/* Chats Panel */}
         <div
-          className={`chats-panel h-full sm:w-[30%] lg:w-[24%] flex-shrink-0 ${
+          className={`chats-panel h-full w-[calc(100%-46px)] sm:w-[30%] lg:w-[24%] flex-shrink-0 ${
             showChatList ? "block" : "hidden sm:block"
           } ml-12`}
         >
@@ -168,19 +168,9 @@ export default function Home() {
           } items-center justify-center relative ml-12 sm:ml-0`}
         >
           {selectedChatId ? (
-            <>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute top-4 left-4 sm:hidden"
-                onClick={() => setShowChatList(true)}
-              >
-                <ArrowLeft className="h-6 w-6" />
-              </Button>
-              <div className="h-full w-full">
-                <Outlet />
-              </div>
-            </>
+            <div className="h-full w-full">
+              <Outlet />
+            </div>
           ) : (
             <div className="flex flex-col items-center justify-center h-full w-full bg-gray-100 dark:bg-[#121212]">
               <img

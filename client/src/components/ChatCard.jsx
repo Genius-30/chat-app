@@ -1,5 +1,8 @@
 import React from "react";
 import { Check, CheckCheck } from "lucide-react";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { DialogTitle } from "@radix-ui/react-dialog";
 
 export default function ChatCard({ chat, onClick, selected, currentUserId }) {
   const renderCheckIcon = () => {
@@ -25,20 +28,39 @@ export default function ChatCard({ chat, onClick, selected, currentUserId }) {
     return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
+  const avatar = chat.isGroupChat ? chat.avatar : chat.users[0].avatar;
+  const username = chat.isGroupChat ? chat.chatName : chat.users[0].username;
+
   return (
     <div
       onClick={onClick}
-      className={`chat-card flex items-center gap-x-2 hover:bg-gray-300 dark:hover:bg-zinc-700 rounded-md transition-color ease-linear duration-100 select-none cursor-pointer p-2 ${
+      className={`chat-card h-20 sm:h-auto flex items-center gap-x-2 hover:bg-gray-300 dark:hover:bg-zinc-700 rounded-md hover:transition-color ease-linear hover:duration-100 select-none cursor-pointer p-2 ${
         selected ? "bg-gray-200 dark:bg-zinc-800" : "bg-transparent"
       }`}
     >
-      <img
-        src={chat.isGroupChat ? chat.avatar : chat.users[0].avatar}
-        alt={`${
-          chat.isGroupChat ? chat.chatName : chat.users[0].username
-        }'s avatar`}
-        className="h-auto w-[20%] aspect-square rounded-full object-cover object-center"
-      />
+      <Dialog>
+        <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
+          <Avatar className="h-full w-auto sm:h-auto sm:w-[20%] aspect-square">
+            <AvatarImage
+              src={avatar}
+              alt={`${username}'s avatar`}
+              className="rounded-full object-cover"
+            />
+            <AvatarFallback>{username}</AvatarFallback>
+          </Avatar>
+        </DialogTrigger>
+        <DialogContent
+          aria-describedby={undefined}
+          className="max-h-[90vh] max-w-[90vw] sm:max-h-[70vh] sm:max-w-[70vh]"
+        >
+          <DialogTitle className="hidden">{username}</DialogTitle>
+          <img
+            src={avatar}
+            alt={`${username}'s avatar`}
+            className="w-full h-full object-cover rounded-lg"
+          />
+        </DialogContent>
+      </Dialog>
       <div className="chat-card-details w-[75%] flex flex-col justify-between flex-1">
         <div className="chat-card-top flex items-center justify-between">
           <h3 className="font-semibold text-sm truncate flex-1">
