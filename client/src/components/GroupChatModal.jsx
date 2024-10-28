@@ -114,8 +114,11 @@ export default function GroupChatModal({ onChatUpdate }) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-transparent transition-none">
-          <PlusIcon size={18} className="mr-1" />
+        <Button
+          variant="outline"
+          className="text-xs md:text-sm bg-transparent transition-none p-3 md:p-4"
+        >
+          <PlusIcon className="h-4 md:h-5 w-4 sm:w-5 mr-1" />
           New Group
         </Button>
       </DialogTrigger>

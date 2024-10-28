@@ -34,13 +34,13 @@ export default function ChatCard({ chat, onClick, selected, currentUserId }) {
   return (
     <div
       onClick={onClick}
-      className={`chat-card h-20 sm:h-auto flex items-center gap-x-2 hover:bg-gray-300 dark:hover:bg-zinc-700 rounded-md hover:transition-color ease-linear hover:duration-100 select-none cursor-pointer p-2 ${
+      className={`chat-card h-20 md:h-16 flex items-center gap-x-2 hover:bg-gray-300 dark:hover:bg-zinc-700 rounded-md hover:transition-color ease-linear hover:duration-100 select-none cursor-pointer px-2 ${
         selected ? "bg-gray-200 dark:bg-zinc-800" : "bg-transparent"
       }`}
     >
       <Dialog>
         <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-          <Avatar className="h-full w-auto sm:h-auto sm:w-[20%] aspect-square">
+          <Avatar className="h-[80%] w-auto aspect-square">
             <AvatarImage
               src={avatar}
               alt={`${username}'s avatar`}
@@ -70,7 +70,7 @@ export default function ChatCard({ chat, onClick, selected, currentUserId }) {
             {formatTimestamp(chat.latestMessage.timestamp)}
           </p>
         </div>
-        <div className="chat-card-bottom flex items-center justify-between text-xs text-gray-700 dark:text-zinc-400 mt-1">
+        <div className="chat-card-bottom flex items-center justify-between text-xs text-gray-700 dark:text-zinc-400 mt-[2px]">
           {renderCheckIcon()}
           <p className={`truncate max-w-full mx-[2px] mr-auto`}>
             {chat.latestMessage.content}

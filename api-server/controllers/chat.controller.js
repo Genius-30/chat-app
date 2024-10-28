@@ -351,6 +351,9 @@ export const sendMessage = async (req, res) => {
 
     // Update the chat's lastMessage asynchronously
     await Chat.findByIdAndUpdate(chatId, { latestMessage: latestMessageData });
+
+    // Emit the message to the chat room
+    req.io.to(chatId).emit("message", populatedMessage);
   } catch (error) {
     console.error("Error sending message:", error);
     return res.status(500).json({ message: error.message });

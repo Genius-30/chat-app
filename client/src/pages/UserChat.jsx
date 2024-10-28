@@ -30,6 +30,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import io from "socket.io-client";
+
+const socket = io(import.meta.env.VITE_BACKEND_URL);
 
 export default function UserChat() {
   const [isRecording, setIsRecording] = useState(false);
@@ -148,7 +151,9 @@ export default function UserChat() {
         }
       );
 
-      setMessages((prevMessages) => [...prevMessages, res.data]);
+      // Emit message to other users in the room
+      socket.emit("sendMessage", res.data);
+
       setInputMessage("");
       setFiles([]);
       setAudioBlob(null);
@@ -193,16 +198,35 @@ export default function UserChat() {
     return groups;
   };
 
+  useEffect(() => {
+    // Connect to the Socket.IO server
+    socket.connect();
+
+    // Join the specific chat room
+    socket.emit("joinRoom", chatId);
+
+    // Listen for new messages from the server
+    socket.on("message", (newMessage) => {
+      setMessages((prevMessages) => [...prevMessages, newMessage]);
+    });
+
+    return () => {
+      // Leave the room when the component unmounts
+      socket.emit("leaveRoom", chatId);
+      socket.disconnect();
+    };
+  }, [chatId]);
+
   const renderFilePreview = (file) => {
     const fileUrl = file.path || URL.createObjectURL(file);
     const fileType = file.mimetype ? file.mimetype.split("/")[0] : "unknown";
 
     return (
       <div
-        className={`w-48 sm:w-64 ${
+        className={`w-48 sm:w-56 md:w-80 ${
           fileType === "image" || fileType !== "video"
             ? "h-auto flex-row items-center space-x-1"
-            : "h-32 sm:h-36 flex-col items-start"
+            : "h-32 sm:h-36 md:h-44 flex-col items-start"
         } rounded-md overflow-hidden flex mb-2`}
       >
         {fileType === "image" && (

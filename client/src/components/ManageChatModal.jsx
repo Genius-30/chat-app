@@ -80,7 +80,7 @@ export default function ManageChatModal({ onChatUpdate, existingChats }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <UserPlus className="h-full w-[15%] bg-slate-200 dark:bg-[#1f1f1f] rounded-md py-2 px-2" />
+        <UserPlus className="h-full w-[20%] md:w-[15%] bg-slate-200 dark:bg-[#1f1f1f] rounded-md py-2 px-2" />
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
@@ -94,6 +94,7 @@ export default function ManageChatModal({ onChatUpdate, existingChats }) {
             placeholder="Search users..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
+            className="text-sm sm:text-base"
           />
           {users.length > 0 ? (
             <ScrollArea className="h-[300px] w-full rounded-md border">
