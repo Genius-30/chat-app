@@ -1,0 +1,18 @@
+{
+  "projects": [
+    {
+      "name": "client",
+      "src": "client",
+      "buildCommand": "npm run build",
+      "outputDirectory": "client/dist",
+      "framework": "vite"
+    },
+    {
+      "name": "api-server",
+      "src": "api-server",
+      "buildCommand": "npm install && npm run build",
+      "outputDirectory": "api-server",
+      "framework": "node"
+    }
+  ]
+}
