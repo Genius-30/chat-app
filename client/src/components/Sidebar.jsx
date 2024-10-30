@@ -132,10 +132,10 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
     <div
       className={`sidebar absolute z-[49] bottom-0 sm:top-0 h-auto sm:h-full w-full ${
         menu ? "sm:w-48 items-start" : "sm:w-12 items-center"
-      } flex flex-row sm:flex-col gap-y-2 bg-slate-200 dark:bg-zinc-800 sm:py-4 shadow-lg px-2 s`}
+      } flex flex-row sm:flex-col gap-y-2 bg-slate-200 dark:bg-zinc-800 sm:py-4 shadow-lg px-2`}
       ref={buttonRef}
     >
-      <div
+      <button
         onClick={toggleMenu}
         className={`hidden sm:flex text-zinc-900 dark:text-gray-50 items-center cursor-pointer ${iconContainerClasses} mb-6`}
       >
@@ -144,8 +144,8 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
         ) : (
           <MenuIcon strokeWidth={1.5} size={20} />
         )}
-      </div>
-      <div className="w-full flex flex-col gap-2">
+      </button>
+      <button className="w-full flex flex-col gap-2">
         <NavLink
           to={"/"}
           className={({ isActive }) =>
@@ -157,10 +157,10 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
           <Home strokeWidth={1.5} size={20} />
           {menu && <p className="select-none">Home</p>}
         </NavLink>
-      </div>
-      <div
+      </button>
+      <button
         onClick={toggleTheme}
-        className={`w-full flex items-center gap-3 rounded-md hover:bg-slate-300 hover:dark:bg-zinc-700 cursor-pointer ${linkContainerClasses}`}
+        className={`w-full flex items-center gap-3 rounded-md sm:hover:bg-slate-300 sm:hover:dark:bg-zinc-700 cursor-pointer ${linkContainerClasses} bg-transparent`}
       >
         {theme === "dark" ? (
           <Sun strokeWidth={1.5} size={20} />
@@ -168,7 +168,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
           <Moon strokeWidth={1.5} size={20} />
         )}
         {menu && <p className="select-none">Theme</p>}
-      </div>
+      </button>
       <div className="relative w-full sm:mt-auto">
         <div
           ref={profileIconRef}
