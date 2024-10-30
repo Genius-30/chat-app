@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button";
 import "./App.css";
 
 export default function App() {
-  const { theme, toggleTheme } = useTheme();
+  // const { theme, toggleTheme } = useTheme();
   const [loader, setLoader] = useState(true);
   const dispatch = useDispatch();
   const location = useLocation();
@@ -58,11 +58,11 @@ export default function App() {
       ref={nodeRef}
       className="relative min-h-screen bg-gray-50 dark:bg-black text-black dark:text-white"
     >
-      <Button
+      {/* <Button
         variant="outline"
         size="icon"
         onClick={toggleTheme}
-        className={`fixed right-4 bottom-4 rounded-lg shadow-lg hover:shadow-xl z-50`}
+        className={`fixed right-4 top-4 rounded-lg shadow-lg hover:shadow-xl z-50`}
       >
         {theme === "dark" ? (
           <Sun className="h-[1.2rem] w-[1.2rem]" />
@@ -70,7 +70,7 @@ export default function App() {
           <Moon className="h-[1.2rem] w-[1.2rem]" />
         )}
         <span className="sr-only">Toggle theme</span>
-      </Button>
+      </Button> */}
       <Toaster />
       <Suspense fallback={<Loader />}>
         <Routes location={location}>

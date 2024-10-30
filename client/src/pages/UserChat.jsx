@@ -222,20 +222,14 @@ export default function UserChat() {
     const fileType = file.mimetype ? file.mimetype.split("/")[0] : "unknown";
 
     return (
-      <div
-        className={`w-48 sm:w-56 md:w-80 ${
-          fileType === "image" || fileType !== "video"
-            ? "h-auto flex-row items-center space-x-1"
-            : "h-32 sm:h-36 md:h-44 flex-col items-start"
-        } rounded-md overflow-hidden flex mb-2`}
-      >
+      <div className={`max-h-96 w-48 sm:w-64 max-w-full flex flex-col mb-2`}>
         {fileType === "image" && (
           <Dialog>
             <DialogTrigger asChild>
               <img
                 src={fileUrl}
                 alt={file.filename || "Uploaded image"}
-                className="w-full h-full object-cover cursor-pointer"
+                className="w-full h-full object-cover cursor-pointer rounded-md"
               />
             </DialogTrigger>
             <DialogContent
@@ -258,7 +252,7 @@ export default function UserChat() {
           </audio>
         )}
         {fileType === "video" && (
-          <video controls className="w-full h-full">
+          <video controls className="w-full h-full rounded-md">
             <source src={fileUrl} type={file.type} />
             Your browser does not support the video tag.
           </video>
@@ -306,8 +300,8 @@ export default function UserChat() {
   const username = chat.isGroupChat ? chat.chatName : otherUsers?.username;
 
   return (
-    <div className="flex flex-col h-full w-full bg-gray-100 dark:bg-[#121212]">
-      <header className="bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-50 border-b border-gray-200 dark:border-gray-800 p-4 flex items-center">
+    <div className="flex flex-col h-full w-full bg-gray-100 dark:bg-[#121212] pb-12 sm:p-0">
+      <header className="bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-50 border-b border-gray-200 dark:border-gray-800 py-3 px-2 sm:p-4 flex items-center">
         <Button
           variant="ghost"
           size="icon"
@@ -318,7 +312,7 @@ export default function UserChat() {
         </Button>
         <Dialog>
           <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-            <Avatar className="h-10 w-10 mr-3">
+            <Avatar className="h-8 sm:h-10 w-8 sm:w-10 mr-3">
               <AvatarImage src={avatar} className="rounded-full" />
               <AvatarFallback>{`${username}'s avatar`}</AvatarFallback>
             </Avatar>
@@ -337,7 +331,7 @@ export default function UserChat() {
         </Dialog>
 
         <div className="flex-grow">
-          <h2 className="font-semibold">
+          <h2 className="text-sm sm:text-base font-semibold">
             {chat.isGroupChat ? chat.chatName : otherUsers?.username}
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400">
@@ -375,20 +369,22 @@ export default function UserChat() {
                 } mt-2`}
               >
                 <div
-                  className={`max-w-[60%] p-2 rounded-lg shadow-sm ${
+                  className={`inline-block max-w-[70%] sm:max-w-[60%] p-1 sm:p-2 rounded-lg shadow-sm ${
                     message.sender._id !== otherUsers._id
                       ? "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                       : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
-                  }`}
+                  } overflow-hidden`}
                 >
                   {message.files && message.files.length > 0 && (
-                    <div className="mb-2">
+                    <div className="w-full">
                       {message.files.map((file, index) => (
-                        <div key={index}>{renderFilePreview(file)}</div>
+                        <div key={index} className="w-full">
+                          {renderFilePreview(file)}
+                        </div>
                       ))}
                     </div>
                   )}
-                  <p className="text-sm">{message.text}</p>
+                  {message.text && <p className="text-sm">{message.text}</p>}
                   <p className="text-[10px] text-end text-gray-500 dark:text-gray-400 mt-1">
                     {format(new Date(message.createdAt), "h:mm a")}
                   </p>
@@ -440,7 +436,7 @@ export default function UserChat() {
         </div>
       )}
 
-      <footer className="bg-white dark:bg-[#1E1E1E] border-t border-gray-200 dark:border-gray-800 p-4">
+      <footer className="bg-white dark:bg-[#1E1E1E] border-t border-gray-200 dark:border-gray-800 p-2 sm:p-4">
         <form
           onSubmit={handleSendMessage}
           className="flex items-center space-x-2"

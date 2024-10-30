@@ -70,5 +70,5 @@ app.use("/api/chat", chatRouter);
 // Start the server
 const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
-  console.log(`API Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

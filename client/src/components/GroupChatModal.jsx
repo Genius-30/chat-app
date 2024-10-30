@@ -213,7 +213,7 @@ export default function GroupChatModal({ onChatUpdate }) {
                     key={user._id}
                     className="flex items-center rounded-full bg-secondary px-3 py-1 text-sm"
                   >
-                    <span className="mb-1">{user.username}</span>
+                    <span>{user.username}</span>
                     <Button
                       variant="ghost"
                       size="icon"

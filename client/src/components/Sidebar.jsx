@@ -1,5 +1,5 @@
 import React, { forwardRef, useEffect, useRef, useState } from "react";
-import { Check, Edit, Home, MenuIcon, X } from "lucide-react";
+import { Check, Edit, Home, MenuIcon, Moon, Sun, X } from "lucide-react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Separator } from "./ui/separator";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,9 +8,11 @@ import axios from "@/api/axios";
 import Lottie from "lottie-react";
 import loadingAnim from "../animations/loadingAnim.json";
 import { logout, updateUser } from "@/store/authSlice";
+import { useTheme } from "@/context/themeContext";
 
 const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
   const buttonRef = ref;
+  const { theme, toggleTheme } = useTheme();
 
   const [showProfile, setShowProfile] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -26,7 +28,6 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
 
   const user = useSelector((state) => state.auth.user);
 
-  const menuClasses = menu ? "w-48 items-start" : "w-12 items-center";
   const iconContainerClasses = menu
     ? "justify-start px-4"
     : "justify-center px-0";
@@ -129,12 +130,14 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
 
   return (
     <div
-      className={`sidebar absolute z-[49] h-full flex flex-col bg-slate-200 dark:bg-zinc-800 py-4 ${menuClasses}`}
+      className={`sidebar absolute z-[49] bottom-0 sm:top-0 h-auto sm:h-full w-full ${
+        menu ? "sm:w-48 items-start" : "sm:w-12 items-center"
+      } flex flex-row sm:flex-col gap-y-2 bg-slate-200 dark:bg-zinc-800 sm:py-4 shadow-lg px-2 s`}
       ref={buttonRef}
     >
       <div
         onClick={toggleMenu}
-        className={`text-zinc-900 dark:text-gray-50 flex items-center cursor-pointer ${iconContainerClasses}`}
+        className={`hidden sm:flex text-zinc-900 dark:text-gray-50 items-center cursor-pointer ${iconContainerClasses} mb-6`}
       >
         {menu ? (
           <X strokeWidth={1.5} size={20} />
@@ -142,7 +145,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
           <MenuIcon strokeWidth={1.5} size={20} />
         )}
       </div>
-      <div className="w-full flex flex-col gap-2 mt-6">
+      <div className="w-full flex flex-col gap-2">
         <NavLink
           to={"/"}
           className={({ isActive }) =>
@@ -155,7 +158,18 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
           {menu && <p className="select-none">Home</p>}
         </NavLink>
       </div>
-      <div className="relative w-full mt-auto">
+      <div
+        onClick={toggleTheme}
+        className={`w-full flex items-center gap-3 rounded-md hover:bg-slate-300 hover:dark:bg-zinc-700 cursor-pointer ${linkContainerClasses}`}
+      >
+        {theme === "dark" ? (
+          <Sun strokeWidth={1.5} size={20} />
+        ) : (
+          <Moon strokeWidth={1.5} size={20} />
+        )}
+        {menu && <p className="select-none">Theme</p>}
+      </div>
+      <div className="relative w-full sm:mt-auto">
         <div
           ref={profileIconRef}
           onClick={handleProfile}
@@ -176,7 +190,9 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
           <div
             ref={profileRef}
             className={`absolute ${
-              menu ? "bottom-12 left-24" : "bottom-0 left-12"
+              menu
+                ? "bottom-4 left-14"
+                : "bottom-14 sm:bottom-0 right-2 sm:left-14"
             } min-h-52 w-52 bg-slate-200 dark:bg-zinc-800 flex flex-col items-start p-4 rounded-md shadow-md dark:shadow-zinc-950`}
           >
             <div className="flex-1 w-full flex flex-col items-start justify-end mb-2">

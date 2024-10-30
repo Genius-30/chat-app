@@ -3,6 +3,7 @@ import { Check, CheckCheck } from "lucide-react";
 import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { DialogTitle } from "@radix-ui/react-dialog";
+import { format, isThisYear, isToday, isYesterday } from "date-fns";
 
 export default function ChatCard({ chat, onClick, selected, currentUserId }) {
   const renderCheckIcon = () => {
@@ -22,10 +23,16 @@ export default function ChatCard({ chat, onClick, selected, currentUserId }) {
     }
   };
 
-  const formatTimestamp = (timestamp) => {
-    if (!timestamp) return null;
-    const date = new Date(timestamp);
-    return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const formatTimestamp = (date) => {
+    if (isToday(date)) {
+      return format(date, "hh:mm a"); // Show time if the date is today
+    } else if (isYesterday(date)) {
+      return "Yesterday";
+    } else if (isThisYear(date)) {
+      return format(date, "MMM d"); // Show abbreviated month if within the current year
+    } else {
+      return format(date, "MMM d, yyyy"); // Show month, day, and year for older dates
+    }
   };
 
   const avatar = chat.isGroupChat ? chat.avatar : chat.users[0].avatar;
@@ -34,13 +41,13 @@ export default function ChatCard({ chat, onClick, selected, currentUserId }) {
   return (
     <div
       onClick={onClick}
-      className={`chat-card h-20 md:h-16 flex items-center gap-x-2 hover:bg-gray-300 dark:hover:bg-zinc-700 rounded-md hover:transition-color ease-linear hover:duration-100 select-none cursor-pointer px-2 ${
+      className={`chat-card flex items-center gap-x-2 hover:bg-gray-300 dark:hover:bg-zinc-700 rounded-md hover:transition-color ease-linear hover:duration-100 select-none cursor-pointer p-2 ${
         selected ? "bg-gray-200 dark:bg-zinc-800" : "bg-transparent"
       }`}
     >
       <Dialog>
         <DialogTrigger asChild onClick={(e) => e.stopPropagation()}>
-          <Avatar className="h-[80%] w-auto aspect-square">
+          <Avatar className="h-11  w-auto aspect-square">
             <AvatarImage
               src={avatar}
               alt={`${username}'s avatar`}
