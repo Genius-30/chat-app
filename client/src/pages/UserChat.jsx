@@ -369,7 +369,7 @@ export default function UserChat() {
                 } mt-2`}
               >
                 <div
-                  className={`inline-block max-w-[70%] sm:max-w-[60%] p-1 sm:p-2 rounded-lg shadow-sm ${
+                  className={`inline-block max-w-[70%] sm:max-w-[60%] px-2 py-1 sm:p-2 rounded-lg shadow-sm ${
                     message.sender._id !== otherUsers._id
                       ? "bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200"
                       : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
