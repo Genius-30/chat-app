@@ -9,6 +9,7 @@ import {
   verifyEmail,
   resendVerificationEmail,
   updateUser,
+  refreshToken,
 } from "../controllers/user.controller.js";
 import upload from "../middleware/multer.js";
 import verifyJWT from "../middleware/auth.js";
@@ -28,5 +29,6 @@ router
 router
   .route("/update-user")
   .put(verifyJWT, upload.single("avatar"), updateUser);
+router.route("/refresh-token").get(refreshToken);
 
 export const userRouter = router;

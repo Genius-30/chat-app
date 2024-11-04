@@ -83,7 +83,8 @@ const Signup = () => {
     }
   }, [debouncedUsername]);
 
-  const handleSignup = async () => {
+  const handleSignup = async (e) => {
+    e.preventDefault();
     const { username, email, password, avatarFile } = formData;
 
     if (!username || !email || !password) {
@@ -129,7 +130,10 @@ const Signup = () => {
   };
 
   return (
-    <div className="w-full sm:w-auto sm:min-w-[20rem] dark:text-gray-50 text-black flex flex-col gap-3 mt-6 items-center">
+    <form
+      onSubmit={handleSignup}
+      className="w-full sm:w-auto sm:min-w-[20rem] dark:text-gray-50 text-black flex flex-col gap-3 mt-6 items-center"
+    >
       <div className="w-full flex flex-col items-center gap-1">
         <label
           htmlFor="avatar"
@@ -231,7 +235,7 @@ const Signup = () => {
         />
       </div>
       <button
-        onClick={handleSignup}
+        type="submit"
         disabled={loading || !formData.username || !usernameAvailable}
         className="w-full bg-blue-800 disabled:bg-slate-500 text-gray-50 py-2 px-4 rounded-md mt-2 font-semibold text-base flex items-center justify-center gap-2 disabled:cursor-not-allowed"
       >
@@ -246,7 +250,7 @@ const Signup = () => {
           Login
         </Link>
       </p>
-    </div>
+    </form>
   );
 };
 

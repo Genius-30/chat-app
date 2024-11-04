@@ -173,11 +173,11 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
         <div
           ref={profileIconRef}
           onClick={handleProfile}
-          className={`w-full flex items-center gap-3 rounded-md bg-cover ${
+          className={`w-full flex items-center gap-3 rounded-full bg-cover ${
             showProfile
-              ? "bg-slate-300 dark:bg-zinc-700"
-              : "hover:bg-slate-300 hover:dark:bg-zinc-700"
-          } cursor-pointer select-none ${linkContainerClasses}`}
+              ? "shadow-none dark:shadow-none"
+              : "hover:shadow-gray-600 hover:dark:shadow-zinc-950"
+          } cursor-pointer select-none mb-2 shadow-sm`}
         >
           <img
             src={user.avatar}

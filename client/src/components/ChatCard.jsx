@@ -24,6 +24,8 @@ export default function ChatCard({ chat, onClick, selected, currentUserId }) {
   };
 
   const formatTimestamp = (date) => {
+    if (!date) return "";
+
     if (isToday(date)) {
       return format(date, "hh:mm a"); // Show time if the date is today
     } else if (isYesterday(date)) {

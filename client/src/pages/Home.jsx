@@ -103,7 +103,7 @@ export default function Home() {
         <div
           className={`chats-panel h-full w-full sm:w-[30%] lg:w-[24%] flex-shrink-0 ${
             showChatList ? "block" : "hidden sm:block"
-          } mb-12 sm:ml-12`}
+          } mb-12 sm:mb-0 sm:ml-12`}
         >
           <div className="h-full flex flex-col p-4">
             <div className="flex items-center justify-between mb-4">

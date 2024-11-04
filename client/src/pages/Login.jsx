@@ -85,7 +85,8 @@ const Login = () => {
     );
   };
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
     const { identifier, password } = formData;
 
     try {
@@ -128,7 +129,10 @@ const Login = () => {
   };
 
   return (
-    <div className="w-full sm:w-auto sm:min-w-[20rem] dark:text-gray-50 text-black flex flex-col gap-3 mt-6 items-center">
+    <form
+      onSubmit={handleLogin}
+      className="w-full sm:w-auto sm:min-w-[20rem] dark:text-gray-50 text-black flex flex-col gap-3 mt-6 items-center"
+    >
       <div className="w-full flex flex-col gap-1">
         <label htmlFor="identifier" className="text-sm">
           Email / Username*
@@ -156,7 +160,7 @@ const Login = () => {
         />
       </div>
       <button
-        onClick={handleLogin}
+        type="submit"
         disabled={loading}
         className="w-full bg-blue-800 disabled:bg-slate-500 text-gray-50 py-2 px-4 rounded-md mt-2 font-semibold text-base flex items-center justify-center gap-2 disabled:cursor-not-allowed"
       >
@@ -173,7 +177,7 @@ const Login = () => {
           Signup
         </Link>
       </p>
-    </div>
+    </form>
   );
 };
 

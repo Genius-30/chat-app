@@ -1,18 +1,14 @@
 import React, { Suspense, useEffect, useRef, useState } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { Moon, Sun } from "lucide-react";
 import { Toaster } from "react-hot-toast";
 import axios from "@/api/axios";
-import { useTheme } from "./context/themeContext";
 import { login, logout, verifyUser } from "./store/authSlice";
 import Loader from "./components/Loader";
 import routes from "./routesConfig";
-import { Button } from "@/components/ui/button";
 import "./App.css";
 
 export default function App() {
-  // const { theme, toggleTheme } = useTheme();
   const [loader, setLoader] = useState(true);
   const dispatch = useDispatch();
   const location = useLocation();
@@ -28,16 +24,12 @@ export default function App() {
       }
 
       try {
-        const res = await axios.get("/api/user", {
-          withCredentials: true,
-        });
-
+        const res = await axios.get("/api/user");
         const { user, accessToken } = res.data;
-        dispatch(login(user, accessToken));
-        user?.isVerified && dispatch(verifyUser());
 
-        if (!res.data.user) {
-          dispatch(logout());
+        dispatch(login(user, accessToken));
+        if (user?.isVerified) {
+          dispatch(verifyUser());
         }
       } catch (error) {
         dispatch(logout());
@@ -58,19 +50,6 @@ export default function App() {
       ref={nodeRef}
       className="relative min-h-screen bg-gray-50 dark:bg-black text-black dark:text-white"
     >
-      {/* <Button
-        variant="outline"
-        size="icon"
-        onClick={toggleTheme}
-        className={`fixed right-4 top-4 rounded-lg shadow-lg hover:shadow-xl z-50`}
-      >
-        {theme === "dark" ? (
-          <Sun className="h-[1.2rem] w-[1.2rem]" />
-        ) : (
-          <Moon className="h-[1.2rem] w-[1.2rem]" />
-        )}
-        <span className="sr-only">Toggle theme</span>
-      </Button> */}
       <Toaster />
       <Suspense fallback={<Loader />}>
         <Routes location={location}>
