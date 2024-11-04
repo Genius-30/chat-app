@@ -506,7 +506,7 @@ export default function UserChat() {
               isRecording
                 ? "bg-red-500 hover:bg-red-600"
                 : "bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
-            } transition-none`}
+            } transition-none px-[6px]`}
             onClick={isRecording ? stopRecording : startRecording}
           >
             <Mic
@@ -518,7 +518,7 @@ export default function UserChat() {
           <Button
             type="submit"
             size="icon"
-            className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-none"
+            className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition-none px-[6px]"
             disabled={
               (!inputMessage && files.length === 0 && !audioBlob) ||
               sendingMessage
