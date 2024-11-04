@@ -132,7 +132,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
     <div
       className={`sidebar absolute z-[49] bottom-0 sm:top-0 h-auto sm:h-full w-full ${
         menu ? "sm:w-48 sm:items-start" : "sm:w-12 sm:items-center"
-      } flex flex-row items-center justify-between sm:justify-normal sm:flex-col gap-y-2 bg-slate-200 dark:bg-zinc-800 py-2 sm:py-4 shadow-lg px-2`}
+      } flex flex-row items-center justify-between sm:justify-normal sm:flex-col gap-y-2 bg-slate-200 dark:bg-zinc-800 py-1 sm:py-4 shadow-lg px-2`}
       ref={buttonRef}
     >
       <button
@@ -182,7 +182,7 @@ const Sidebar = forwardRef(({ menu, toggleMenu }, ref) => {
           <img
             src={user.avatar}
             alt={`${user.username}'s avatar`}
-            className="h-8 aspect-square rounded-full object-cover object-center"
+            className="h-6 sm:h-8 aspect-square rounded-full object-cover object-center"
           />
           {menu && <p className="select-none">Profile</p>}
         </div>
