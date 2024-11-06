@@ -207,7 +207,9 @@ export default function UserChat() {
 
     // Listen for new messages from the server
     socket.on("message", (newMessage) => {
-      setMessages((prevMessages) => [...prevMessages, newMessage]);
+      if (newMessage.sender._id !== currentUserId) {
+        setMessages((prevMessages) => [...prevMessages, newMessage]);
+      }
     });
 
     return () => {
