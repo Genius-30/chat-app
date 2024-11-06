@@ -1,4 +1,3 @@
-import { LoaderCircle } from "lucide-react";
 import Lottie from "lottie-react";
 import chatLoadingAnim from "../animations/chat-loading.json";
 import React from "react";
