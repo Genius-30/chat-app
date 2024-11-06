@@ -222,7 +222,7 @@ export default function UserChat() {
     const fileType = file.mimetype ? file.mimetype.split("/")[0] : "unknown";
 
     return (
-      <div className={`max-h-96 w-48 sm:w-64 max-w-full flex flex-col mb-2`}>
+      <div className={`h-auto w-48 sm:w-64 max-w-full flex flex-col mb-2`}>
         {fileType === "image" && (
           <Dialog>
             <DialogTrigger asChild>
@@ -234,13 +234,13 @@ export default function UserChat() {
             </DialogTrigger>
             <DialogContent
               aria-describedby={undefined}
-              className="max-h-[90vh] h-[90vh] w-full max-w-[90vw] sm:max-h-[70vh] sm:max-w-[70vh] overflow-hidden"
+              className="max-h-[90vh] h-auto w-auto"
             >
               <DialogTitle className="hidden"></DialogTitle>
               <img
                 src={fileUrl}
                 alt={file.filename || "Uploaded image"}
-                className="max-w-full max-h-full object-contain rounded-md"
+                className="w-auto max-h-[80vh] object-cover rounded-md"
               />
             </DialogContent>
           </Dialog>

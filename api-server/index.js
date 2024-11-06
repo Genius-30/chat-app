@@ -32,7 +32,7 @@ io.on("connection", (socket) => {
 
   socket.on("sendMessage", (message) => {
     // Broadcast the message to other users in the room
-    socket.broadcast.to(message.chatId).emit("message", message);
+    socket.to(message.chatId).emit("message", message);
   });
 
   socket.on("leaveRoom", (chatId) => {
