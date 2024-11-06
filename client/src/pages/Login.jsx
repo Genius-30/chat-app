@@ -6,8 +6,12 @@ import Lottie from "lottie-react";
 import toast from "react-hot-toast";
 import { useDispatch } from "react-redux";
 import { login, verifyUser } from "@/store/authSlice";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Eye, EyeOff } from "lucide-react";
 
 const Login = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     identifier: "",
     password: "",
@@ -137,12 +141,13 @@ const Login = () => {
         <label htmlFor="identifier" className="text-sm">
           Email / Username*
         </label>
-        <input
+        <Input
           type="text"
           id="identifier"
           name="identifier"
           value={formData.identifier}
           onChange={handleInputChange}
+          autocomplete="off"
           className="h-10 rounded-md outline-none bg-gray-300 dark:bg-[#323232] py-2 px-3 text-black dark:text-gray-50"
         />
       </div>
@@ -150,14 +155,32 @@ const Login = () => {
         <label htmlFor="password" className="text-sm">
           Password*
         </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          className="h-10 rounded-md outline-none bg-gray-300 dark:bg-[#323232] py-2 px-3 text-black dark:text-gray-50"
-        />
+        <div className="relative">
+          <Input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+            className="h-10 rounded-md outline-none bg-gray-300 dark:bg-[#323232] py-2 px-3 pr-10 text-black dark:text-gray-50"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute inset-y-0 right-0 h-full"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+            <span className="sr-only">
+              {showPassword ? "Hide password" : "Show password"}
+            </span>
+          </Button>
+        </div>
       </div>
       <button
         type="submit"

@@ -234,13 +234,13 @@ export default function UserChat() {
             </DialogTrigger>
             <DialogContent
               aria-describedby={undefined}
-              className="max-h-[90vh] max-w-[90vw] sm:max-h-[70vh] sm:max-w-[70vh]"
+              className="max-h-[90vh] h-[90vh] w-full max-w-[90vw] sm:max-h-[70vh] sm:max-w-[70vh] overflow-hidden"
             >
               <DialogTitle className="hidden"></DialogTitle>
               <img
                 src={fileUrl}
                 alt={file.filename || "Uploaded image"}
-                className="w-full h-auto object-cover rounded-md"
+                className="max-w-full max-h-full object-contain rounded-md"
               />
             </DialogContent>
           </Dialog>

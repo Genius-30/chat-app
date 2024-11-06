@@ -1,4 +1,4 @@
-import { CircleCheckBig, CircleX, ImagePlus } from "lucide-react";
+import { CircleCheckBig, CircleX, ImagePlus, Eye, EyeOff } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
@@ -8,8 +8,11 @@ import axios from "@/api/axios";
 import { useDispatch } from "react-redux";
 import { login } from "@/store/authSlice";
 import useDebounce from "@/hooks/useDebounce";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 const Signup = () => {
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
@@ -167,12 +170,13 @@ const Signup = () => {
         <label htmlFor="username" className="text-sm">
           Username*
         </label>
-        <input
+        <Input
           type="text"
           id="username"
           name="username"
           value={formData.username}
           onChange={handleInputChange}
+          autocomplete="off"
           className={`h-10 rounded-md outline-none py-2 px-3 ${
             usernameAvailable === false
               ? "border-red-500"
@@ -212,12 +216,13 @@ const Signup = () => {
         <label htmlFor="email" className="text-sm">
           Email*
         </label>
-        <input
+        <Input
           type="email"
           id="email"
           name="email"
           value={formData.email}
           onChange={handleInputChange}
+          autocomplete="off"
           className="h-10 rounded-md outline-none bg-gray-300 dark:bg-[#323232] py-2 px-3 text-black dark:text-gray-50"
         />
       </div>
@@ -225,14 +230,32 @@ const Signup = () => {
         <label htmlFor="password" className="text-sm">
           Password*
         </label>
-        <input
-          type="password"
-          id="password"
-          name="password"
-          value={formData.password}
-          onChange={handleInputChange}
-          className="h-10 rounded-md outline-none bg-gray-300 dark:bg-[#323232] py-2 px-3 text-black dark:text-gray-50"
-        />
+        <div className="relative">
+          <Input
+            type={showPassword ? "text" : "password"}
+            id="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+            className="h-10 rounded-md outline-none bg-gray-300 dark:bg-[#323232] py-2 px-3 pr-10 text-black dark:text-gray-50"
+          />
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="absolute inset-y-0 right-0 h-full"
+            onClick={() => setShowPassword(!showPassword)}
+          >
+            {showPassword ? (
+              <EyeOff className="h-4 w-4" />
+            ) : (
+              <Eye className="h-4 w-4" />
+            )}
+            <span className="sr-only">
+              {showPassword ? "Hide password" : "Show password"}
+            </span>
+          </Button>
+        </div>
       </div>
       <button
         type="submit"

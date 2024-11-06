@@ -80,7 +80,7 @@ export default function ManageChatModal({ onChatUpdate, existingChats }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <UserPlus className="h-full w-[15%] bg-slate-200 dark:bg-[#1f1f1f] rounded-md py-[10px] sm:p-2" />
+        <UserPlus className="h-full w-[15%] sm:w-[20%] bg-slate-200 dark:bg-[#1f1f1f] rounded-md py-[10px] sm:p-[6px]" />
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>

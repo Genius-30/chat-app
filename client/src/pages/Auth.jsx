@@ -10,7 +10,7 @@ const Auth = () => {
   }, [location]);
 
   return (
-    <div className="max-h-screen h-screen w-full p-4 flex items-center justify-center">
+    <div className="max-h-screen h-dvh w-full p-4 flex items-center justify-center">
       <div className="w-full sm:w-auto sm:min-w-[24rem] min-h-[60vh] bg-gray-200 dark:bg-[#121212] p-4 rounded-3xl flex items-center justify-start flex-col text-gray-50 shadow-md shadow-gray-200 dark:shadow-black">
         <div className="bg-gray-300 dark:bg-[#323232] h-11 w-full rounded-full flex items-center justify-center gap-2 p-1 mb-2">
           <Link

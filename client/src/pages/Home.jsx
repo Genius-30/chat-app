@@ -114,7 +114,7 @@ export default function Home() {
             </div>
 
             {/* Search Box */}
-            <div className="search-box h-10 w-full flex items-center overflow-hidden gap-x-1 mb-4">
+            <div className="search-box h-10 sm:h-12 w-full flex items-center overflow-hidden gap-x-1 mb-4">
               <input
                 type="text"
                 placeholder="Search here..."
