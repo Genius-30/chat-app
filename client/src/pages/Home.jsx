@@ -114,7 +114,7 @@ export default function Home() {
             </div>
 
             {/* Search Box */}
-            <div className="search-box h-10 sm:h-12 w-full flex items-center overflow-hidden gap-x-1 mb-4">
+            <div className="search-box h-9 w-full flex items-center overflow-hidden gap-x-1 mb-4">
               <input
                 type="text"
                 placeholder="Search here..."
@@ -130,7 +130,7 @@ export default function Home() {
             </div>
 
             {/* Chats List */}
-            <div className="flex-grow overflow-y-auto overflow-x-hidden space-y-1 custom-scroller">
+            <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-1 custom-scroller">
               {loading ? (
                 <ChatsSkeleton count={8} />
               ) : chats.length > 0 ? (

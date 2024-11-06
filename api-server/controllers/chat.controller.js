@@ -259,7 +259,6 @@ export const getChat = async (req, res) => {
 
     const messages = await Message.find({ chat: chatId })
       .sort({ createdAt: -1 })
-      .limit(20) // Example: limiting to the last 20 messages
       .populate("sender", "username avatar _id");
 
     // Filter out the current user from the chat's 'users' field
