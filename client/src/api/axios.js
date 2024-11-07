@@ -7,6 +7,14 @@ const instance = axios.create({
   withCredentials: true, // Automatically includes cookies in requests
 });
 
+instance.interceptors.request.use((config) => {
+  const token = getCookie("refreshToken"); // Or from localStorage
+  if (token) {
+    config.headers["Authorization"] = `Bearer ${token}`;
+  }
+  return config;
+});
+
 let isRefreshing = false;
 let failedQueue = [];
 
