@@ -4,37 +4,61 @@ import { logout, login } from "@/store/authSlice";
 
 const instance = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
-  withCredentials: true,
+  withCredentials: true, // Automatically includes cookies in requests
 });
 
-// Add a request interceptor to include the access token in headers
-instance.interceptors.request.use(
-  (config) => {
-    const token = store.getState().auth.accessToken;
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
     }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+  });
+  failedQueue = [];
+};
 
 // Add a response interceptor to handle 401 errors and attempt a token refresh
 instance.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
+    const originalRequest = error.config;
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Queue the request until the token is refreshed
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then(() => instance(originalRequest))
+          .catch((err) => Promise.reject(err));
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
       try {
+        // Attempt to refresh the token
         const res = await instance.get("/api/user/refresh-token");
-        const { user, accessToken } = res.data;
-        store.dispatch(login(user, accessToken));
-        error.config.headers.Authorization = `Bearer ${accessToken}`;
-        return instance(error.config); // Retry the original request with new token
+        const { user } = res.data;
+
+        // Update the user's state in Redux
+        store.dispatch(login(user));
+
+        processQueue(null);
+        return instance(originalRequest); // Retry original request
       } catch (_error) {
         store.dispatch(logout());
+        processQueue(_error);
         return Promise.reject(_error);
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   }
 );

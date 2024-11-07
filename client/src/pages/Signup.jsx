@@ -176,7 +176,7 @@ const Signup = () => {
           name="username"
           value={formData.username}
           onChange={handleInputChange}
-          autocomplete="off"
+          autoComplete="off"
           className={`h-10 rounded-md outline-none py-2 px-3 ${
             usernameAvailable === false
               ? "border-red-500"
@@ -222,7 +222,7 @@ const Signup = () => {
           name="email"
           value={formData.email}
           onChange={handleInputChange}
-          autocomplete="off"
+          autoComplete="off"
           className="h-10 rounded-md outline-none bg-gray-300 dark:bg-[#323232] py-2 px-3 text-black dark:text-gray-50"
         />
       </div>

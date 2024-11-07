@@ -147,7 +147,7 @@ const Login = () => {
           name="identifier"
           value={formData.identifier}
           onChange={handleInputChange}
-          autocomplete="off"
+          autoComplete="off"
           className="h-10 rounded-md outline-none bg-gray-300 dark:bg-[#323232] py-2 px-3 text-black dark:text-gray-50"
         />
       </div>
