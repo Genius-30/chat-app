@@ -43,13 +43,13 @@ instance.interceptors.response.use(
       try {
         // Attempt to refresh the token
         const res = await instance.get("/api/user/refresh-token");
-        const { user } = res.data;
+        const user = res.data;
 
         // Update the user's state in Redux
         store.dispatch(login(user));
 
         processQueue(null);
-        return instance(originalRequest); // Retry original request
+        return instance(originalRequest);
       } catch (_error) {
         store.dispatch(logout());
         processQueue(_error);

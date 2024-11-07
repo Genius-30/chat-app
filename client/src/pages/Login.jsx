@@ -92,6 +92,7 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     const { identifier, password } = formData;
+    console.log(formData);
 
     try {
       if (!identifier || !password) {
@@ -105,6 +106,7 @@ const Login = () => {
         { identifier, password },
         {
           headers: { "Content-Type": "application/json" },
+          withCredentials: true,
         }
       );
 

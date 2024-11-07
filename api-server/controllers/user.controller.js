@@ -12,14 +12,14 @@ import sendVerificationEmail from "../utils/sendEmail.js";
 
 // Cookie Options
 const options = {
-  // httpOnly: true,
-  // secure: process.env.NODE_ENV === "production",
-  // maxAge: 7 * 24 * 60 * 60 * 1000,
-  // sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  // domain:
-  //   process.env.NODE_ENV === "production"
-  //     ? process.env.FRONTEND_URL
-  //     : undefined,
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  maxAge: 7 * 24 * 60 * 60 * 1000,
+  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  domain:
+    process.env.NODE_ENV === "production"
+      ? process.env.FRONTEND_URL
+      : undefined,
 };
 
 // Signup User
@@ -345,7 +345,7 @@ export const refreshToken = async (req, res) => {
 
         return res.status(200).json({
           accessToken: newAccessToken,
-          refreshToken: newRefreshToken,
+          ...user,
         });
       }
     );
