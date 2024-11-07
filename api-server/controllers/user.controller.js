@@ -12,14 +12,14 @@ import sendVerificationEmail from "../utils/sendEmail.js";
 
 // Cookie Options
 const options = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  maxAge: 7 * 24 * 60 * 60 * 1000,
-  sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  domain:
-    process.env.NODE_ENV === "production"
-      ? process.env.FRONTEND_URL
-      : undefined,
+  // httpOnly: true,
+  // secure: process.env.NODE_ENV === "production",
+  // maxAge: 7 * 24 * 60 * 60 * 1000,
+  // sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+  // domain:
+  //   process.env.NODE_ENV === "production"
+  //     ? process.env.FRONTEND_URL
+  //     : undefined,
 };
 
 // Signup User
@@ -238,7 +238,7 @@ export const verifyEmail = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const { username, email } = req.body;
-    const avatar = req.file?.path;
+    const avatar = req.file?.buffer;
 
     const user = await User.findById(req.user.userId);
 

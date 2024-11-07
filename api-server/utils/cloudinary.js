@@ -11,10 +11,9 @@ cloudinary.config({
 // Upload any type of file to Cloudinary
 const uploadOnCloudinary = async (fileBuffer) => {
   try {
-    // Use resource_type 'auto' to handle various file types
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { resource_type: "auto" }, // Auto-detect the type of resource (image, video, raw, etc.)
+        { resource_type: "auto" },
         (error, result) => {
           if (error) {
             reject(error);
@@ -36,7 +35,7 @@ const uploadOnCloudinary = async (fileBuffer) => {
 const deleteFromCloudinary = async (url) => {
   try {
     const publicId = url.split("/").pop().split(".")[0];
-    await cloudinary.uploader.destroy(publicId, { resource_type: "auto" });
+    await cloudinary.uploader.destroy(publicId, { resource_type: "image" });
   } catch (error) {
     console.error(
       "Error occurred while deleting file from Cloudinary: ",

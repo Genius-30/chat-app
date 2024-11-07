@@ -1,12 +1,14 @@
 import multer from "multer";
+import path from "path";
 
 const storage = multer.memoryStorage({
   destination: function (_, file, cb) {
-    cb(null, "api-server/public/uploads");
+    cb(null, "public/uploads");
   },
   filename: function (_, file, cb) {
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + "-" + uniqueSuffix);
+    const ext = path.extname(file.originalname);
+    cb(null, `${file.fieldname}-${uniqueSuffix}${ext}`);
   },
 });
 
