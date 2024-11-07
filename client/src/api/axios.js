@@ -2,6 +2,13 @@ import axios from "axios";
 import store from "@/store/store";
 import { logout, login } from "@/store/authSlice";
 
+const getCookie = (name) => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(";").shift();
+  return null;
+};
+
 const instance = axios.create({
   baseURL: import.meta.env.VITE_BACKEND_URL,
   withCredentials: true, // Automatically includes cookies in requests

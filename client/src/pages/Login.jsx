@@ -92,7 +92,6 @@ const Login = () => {
   const handleLogin = async (e) => {
     e.preventDefault();
     const { identifier, password } = formData;
-    console.log(formData);
 
     try {
       if (!identifier || !password) {
@@ -124,6 +123,8 @@ const Login = () => {
       toast.success("Login successful");
       resetForm();
     } catch (error) {
+      console.log(error);
+
       if (error.response.status === 403) {
         showLinkToast();
       } else {
