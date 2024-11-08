@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/dialog";
 import io from "socket.io-client";
 
-const socket = io(import.meta.env.VITE_BACKEND_URL);
+const socket = io(import.meta.env.VITE_BACKEND_URL, { autoConnect: false });
 
 export default function UserChat() {
   const [isRecording, setIsRecording] = useState(false);
@@ -154,6 +154,7 @@ export default function UserChat() {
       // Emit message to other users in the room
       socket.emit("sendMessage", res.data);
 
+      // setMessages((prev) => [...prev, res.data]);
       setInputMessage("");
       setFiles([]);
       setAudioBlob(null);
@@ -213,6 +214,7 @@ export default function UserChat() {
     return () => {
       // Leave the room when the component unmounts
       socket.emit("leaveRoom", chatId);
+      socket.off("message");
       socket.disconnect();
     };
   }, [chatId]);
