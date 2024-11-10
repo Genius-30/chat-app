@@ -15,6 +15,7 @@ const MessageSchema = new mongoose.Schema(
         filename: String,
         path: String,
         mimetype: String,
+        duration: Number,
       },
     ],
     isMixed: {

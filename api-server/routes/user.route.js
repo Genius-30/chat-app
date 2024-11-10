@@ -10,6 +10,8 @@ import {
   resendVerificationEmail,
   updateUser,
   refreshToken,
+  resendVerificationSMS,
+  verifyPhone,
 } from "../controllers/user.controller.js";
 import upload from "../middleware/multer.js";
 import verifyJWT from "../middleware/auth.js";
@@ -23,9 +25,11 @@ router.route("/logout").get(verifyJWT, logout);
 router.route("/check-username").post(checkUsername);
 router.route("/search").get(verifyJWT, searchUsers);
 router.route("/verify-email").post(verifyJWT, verifyEmail);
+router.route("/verify-phone").post(verifyJWT, verifyPhone);
 router
   .route("/resend-verification-email")
   .get(verifyJWT, resendVerificationEmail);
+// router.route("/resend-verification-sms").get(verifyJWT, resendVerificationSMS);
 router
   .route("/update-user")
   .put(verifyJWT, upload.single("avatar"), updateUser);

@@ -31,6 +31,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import io from "socket.io-client";
+import CustomAudioPlayer from "@/components/CustomAudioPlayer";
 
 const socket = io(import.meta.env.VITE_BACKEND_URL, { autoConnect: false });
 
@@ -38,6 +39,13 @@ export default function UserChat() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
   const mediaRecorderRef = useRef(null);
+
+  const [isCallActive, setIsCallActive] = useState(false);
+  const [isVideoCall, setIsVideoCall] = useState(false);
+  const [incomingCall, setIncomingCall] = useState(null);
+  const localVideoRef = useRef(null);
+  const remoteVideoRef = useRef(null);
+  const peerConnectionRef = useRef(null);
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -78,6 +86,152 @@ export default function UserChat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  const startCall = async (video = false) => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+        video: video,
+      });
+
+      // Wait until the video element is rendered before assigning the stream
+      setIsCallActive(true);
+      setIsVideoCall(video);
+
+      // Assign the stream to the local video element in useEffect
+      if (peerConnectionRef.current) {
+        peerConnectionRef.current.close();
+      }
+      peerConnectionRef.current = new RTCPeerConnection();
+
+      stream.getTracks().forEach((track) => {
+        peerConnectionRef.current.addTrack(track, stream);
+      });
+
+      peerConnectionRef.current.ontrack = (event) => {
+        if (remoteVideoRef.current) {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        }
+      };
+
+      const offer = await peerConnectionRef.current.createOffer();
+      await peerConnectionRef.current.setLocalDescription(offer);
+
+      socket.emit("call-user", {
+        to: otherUsers._id,
+        offer: offer,
+        video: video,
+      });
+    } catch (error) {
+      console.error("Error starting call:", error);
+      let errorMessage = "Failed to start call. ";
+      if (error.name === "NotAllowedError") {
+        errorMessage += "Please check your camera and microphone permissions.";
+      } else if (error.name === "NotFoundError") {
+        errorMessage += "Camera or microphone not found.";
+      } else {
+        errorMessage += "An unexpected error occurred.";
+      }
+      toast.error(errorMessage);
+      setIsCallActive(false);
+      setIsVideoCall(false);
+    }
+  };
+
+  useEffect(() => {
+    socket.on("call-made", async (data) => {
+      console.log("Incoming call data:", data);
+      setIncomingCall(data);
+    });
+
+    socket.on("call-rejected", () => {
+      toast.error("Call was rejected");
+      endCall();
+    });
+
+    socket.on("answer-made", async (data) => {
+      await peerConnectionRef.current.setRemoteDescription(
+        new RTCSessionDescription(data.answer)
+      );
+    });
+
+    return () => {
+      socket.off("call-made");
+      socket.off("call-rejected");
+      socket.off("answer-made");
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isCallActive && localVideoRef.current && isVideoCall) {
+      // Set the video stream when call starts and localVideoRef is available
+      navigator.mediaDevices
+        .getUserMedia({ audio: true, video: isVideoCall })
+        .then((stream) => {
+          localVideoRef.current.srcObject = stream;
+        })
+        .catch((error) => {
+          console.error("Error accessing media devices:", error);
+        });
+    }
+  }, [isCallActive, isVideoCall]);
+
+  const endCall = () => {
+    if (peerConnectionRef.current) {
+      peerConnectionRef.current.close();
+    }
+    if (localVideoRef.current && localVideoRef.current.srcObject) {
+      localVideoRef.current.srcObject
+        .getTracks()
+        .forEach((track) => track.stop());
+    }
+    setIsCallActive(false);
+    setIsVideoCall(false);
+  };
+
+  const handleIncomingCall = async (accept) => {
+    if (accept) {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: incomingCall.video,
+        });
+
+        localVideoRef.current.srcObject = stream;
+
+        peerConnectionRef.current = new RTCPeerConnection();
+
+        stream.getTracks().forEach((track) => {
+          peerConnectionRef.current.addTrack(track, stream);
+        });
+
+        peerConnectionRef.current.ontrack = (event) => {
+          remoteVideoRef.current.srcObject = event.streams[0];
+        };
+
+        await peerConnectionRef.current.setRemoteDescription(
+          new RTCSessionDescription(incomingCall.offer)
+        );
+
+        const answer = await peerConnectionRef.current.createAnswer();
+        await peerConnectionRef.current.setLocalDescription(answer);
+
+        socket.emit("make-answer", {
+          answer: answer,
+          to: incomingCall.socket,
+        });
+
+        setIsCallActive(true);
+        setIsVideoCall(incomingCall.video);
+      } catch (error) {
+        console.error("Error handling incoming call:", error);
+        toast.error("Error handling incoming call.");
+      }
+    } else {
+      socket.emit("reject-call", { to: incomingCall.socket });
+    }
+    setIncomingCall(null);
+  };
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -140,6 +294,7 @@ export default function UserChat() {
     setSendingMessage(true);
     const formData = new FormData();
     formData.append("text", inputMessage);
+
     files.forEach((file) => formData.append("files", file));
 
     try {
@@ -248,10 +403,11 @@ export default function UserChat() {
           </Dialog>
         )}
         {fileType === "audio" && (
-          <audio controls className="w-full">
-            <source src={fileUrl} type={file.type} />
-            Your browser does not support the audio element.
-          </audio>
+          <CustomAudioPlayer
+            src={fileUrl}
+            audioDuration={file.duration}
+            fileName={file.filename}
+          />
         )}
         {fileType === "video" && (
           <video controls className="w-full h-full rounded-md">
@@ -341,14 +497,11 @@ export default function UserChat() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => startCall(true)}>
             <Video className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </Button>
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={() => startCall(false)}>
             <Phone className="h-5 w-5 text-gray-600 dark:text-gray-400" />
-          </Button>
-          <Button variant="ghost" size="icon">
-            <MoreVertical className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </Button>
         </div>
       </header>
@@ -396,6 +549,44 @@ export default function UserChat() {
           </div>
         ))}
         <div ref={messagesEndRef} />
+        {isCallActive && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg max-w-2xl w-full">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold">
+                  {isVideoCall ? "Video Call" : "Voice Call"}
+                </h2>
+                <Button variant="destructive" onClick={endCall}>
+                  End Call
+                </Button>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-4">
+                <video
+                  ref={localVideoRef}
+                  autoPlay
+                  muted
+                  playsInline
+                  className={`w-full sm:w-1/2 h-48 sm:h-64 bg-gray-200 rounded-lg ${
+                    isVideoCall ? "" : "hidden"
+                  }`}
+                />
+                <video
+                  ref={remoteVideoRef}
+                  autoPlay
+                  playsInline
+                  className={`w-full sm:w-1/2 h-48 sm:h-64 bg-gray-200 rounded-lg ${
+                    isVideoCall ? "" : "hidden"
+                  }`}
+                />
+                {!isVideoCall && (
+                  <div className="w-full h-48 sm:h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                    <AudioLinesIcon className="h-16 w-16 text-gray-400" />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </main>
 
       {/* Preview the files being uploaded */}
@@ -534,6 +725,24 @@ export default function UserChat() {
           </Button>
         </form>
       </footer>
+      {incomingCall && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
+            <h2 className="text-xl font-bold mb-4">
+              Incoming {incomingCall.video ? "Video" : "Voice"} Call
+            </h2>
+            <div className="flex justify-center space-x-4">
+              <Button onClick={() => handleIncomingCall(true)}>Accept</Button>
+              <Button
+                variant="destructive"
+                onClick={() => handleIncomingCall(false)}
+              >
+                Reject
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -15,3 +15,213 @@
   opacity: 0;
   transition: opacity 300ms ease-out;
 }
+
+/* Container Styling */
+.phone-input-container {
+  width: 100%;
+}
+
+.phone-input-container .phone-input-dropdown {
+  top: auto !important;
+  bottom: 100% !important;
+  margin-bottom: 4px;
+}
+
+/* Input Styling */
+.phone-input {
+  width: 100% !important;
+  height: 40px !important;
+  border-radius: 0.375rem !important;
+  outline: none !important;
+  padding: 0.5rem 0.75rem !important;
+  padding-left: 56px !important;
+  font-size: 1rem !important;
+  line-height: 1.5 !important;
+  color: #000000 !important;
+  background-color: #d1d5db !important;
+  border: none !important;
+}
+
+.dark .phone-input {
+  background-color: #323232 !important;
+  color: #ffffff !important;
+}
+
+/* Flag Button Styling */
+.phone-input-button {
+  background-color: #d1d5db !important;
+  border: none !important;
+  border-radius: 0.5rem !important;
+  margin: 2px 8px 2px 2px !important;
+}
+
+.dark .phone-input-button {
+  background-color: #323232 !important;
+}
+
+/* Dropdown Styling */
+.phone-input-dropdown {
+  background-color: #ffffff !important;
+  color: #000000 !important;
+  border-radius: 0.5rem !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dark .phone-input-dropdown {
+  background-color: #181a1b !important;
+  color: #e5e7eb !important;
+  border: 1px solid #374151 !important;
+}
+
+/* Country List Item Styling */
+.phone-input-dropdown .country {
+  padding: 10px !important;
+}
+
+.phone-input-dropdown .country:hover {
+  background-color: #e5e7eb !important;
+  color: #000000 !important;
+}
+
+.dark .phone-input-dropdown .country:hover {
+  background-color: #2c2f31 !important;
+  color: #ffffff !important;
+}
+
+/* Selected Country Styling */
+.phone-input-dropdown .country[aria-selected="true"],
+.phone-input-dropdown .country.highlight {
+  background-color: #d1d5db !important;
+  color: #000000 !important;
+}
+
+.dark .phone-input-dropdown .country[aria-selected="true"],
+.dark .phone-input-dropdown .country.highlight {
+  background-color: #2c2f31 !important;
+  color: #ffffff !important;
+  font-weight: bold !important;
+}
+
+/* Search Field Styling */
+.phone-input-button .search {
+  display: flex;
+  align-items: center;
+}
+
+.phone-input-dropdown .search,
+.phone-input-dropdown .search-box {
+  padding: 5px 12px !important;
+  margin: 8px !important;
+  border-radius: 0.375rem !important;
+  border: 1px solid #d1d5db !important;
+  font-size: 1rem;
+  color: #000000 !important;
+  background-color: #ffffff !important;
+}
+
+.dark .phone-input-dropdown .search,
+.dark .phone-input-dropdown .search-box {
+  background-color: #1f2937 !important;
+  color: #ffffff !important;
+  border-color: #374151 !important;
+}
+
+/* Flag Icon Fix for Dark Mode */
+.dark .phone-input-container .flag {
+  filter: brightness(0.8) contrast(1.2);
+}
+
+/* Selected Flag Styling */
+.flag-dropdown {
+  background-color: #d1d5db !important;
+  color: #000000;
+  border-radius: 0.375rem;
+  padding: 4px 8px;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+}
+
+.dark .flag-dropdown {
+  background-color: #2c2f31 !important;
+  color: #ffffff;
+}
+
+/* Hover Effect for Selected Flag */
+.flag-dropdown:hover {
+  background-color: #cbd5e1 !important;
+  color: #000000;
+}
+
+.dark .flag-dropdown:hover {
+  background-color: #374151 !important;
+  color: #ffffff;
+}
+
+/* Flag Dropdown Button Styling */
+.flag-dropdown.phone-input-button {
+  background-color: #d1d5db;
+  border-radius: 0.375rem;
+  display: flex;
+  align-items: center;
+  transition: background-color 0.2s ease;
+  width: 50px;
+}
+
+.dark .flag-dropdown.phone-input-button {
+  background-color: #2c2f31 !important;
+  color: #ffffff;
+}
+
+.flag-dropdown.phone-input-button:hover {
+  background-color: #cbd5e1 !important;
+  color: #000000;
+}
+
+.dark .flag-dropdown.phone-input-button:hover {
+  background-color: #374151 !important;
+  color: #ffffff !important;
+}
+
+/* Optional: Focus Styling */
+.flag-dropdown:focus {
+  outline: 2px solid #2563eb !important;
+  outline-offset: 2px;
+}
+
+.dark .react-tel-input .selected-flag .arrow {
+  border-top: 4px solid white !important;
+}
+
+.selected-flag {
+  background-color: #d1d5db !important;
+  width: 100% !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dark .selected-flag {
+  background-color: #323232 !important;
+}
+
+.flag {
+  margin-right: 10px !important;
+}
+
+.custom-slider {
+  span {
+    span {
+      cursor: pointer !important;
+      background-color: #323232 !important;
+    }
+  }
+}
+
+.dark .custom-slider {
+  span {
+    span {
+      background-color: #0f172a !important;
+    }
+  }
+}

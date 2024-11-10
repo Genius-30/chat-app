@@ -21,25 +21,74 @@ const io = new Server(server, {
   },
 });
 
+// Store connected users
+const connectedUsers = new Map();
+
 // Socket.IO event handling
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
+  // Store user in the connected users map
+  socket.on("register-user", (userId) => {
+    connectedUsers.set(userId, socket.id);
+    console.log(`User ${userId} registered with socket ID ${socket.id}`);
+  });
+
+  // Join a chat room
   socket.on("joinRoom", (chatId) => {
     socket.join(chatId);
     console.log(`User ${socket.id} joined room ${chatId}`);
   });
 
+  // Send message to a chat room
   socket.on("sendMessage", (message) => {
-    // Broadcast the message to other users in the room
     socket.to(message.chatId).emit("message", message);
   });
 
+  // Handle video/voice call initiation
+  socket.on("call-user", (data) => {
+    const receiverSocketId = connectedUsers.get(data.to);
+    if (receiverSocketId) {
+      socket.to(receiverSocketId).emit("call-made", {
+        offer: data.offer,
+        socket: socket.id,
+        video: data.video,
+      });
+      console.log(`Call initiated from ${socket.id} to ${receiverSocketId}`);
+    } else {
+      console.log(`User ${data.to} is not connected`);
+    }
+  });
+
+  // Handle answer to a call
+  socket.on("make-answer", (data) => {
+    const callerSocketId = data.to;
+    socket.to(callerSocketId).emit("answer-made", {
+      answer: data.answer,
+      socket: socket.id,
+    });
+    console.log(`Answer sent from ${socket.id} to ${callerSocketId}`);
+  });
+
+  // Handle call rejection
+  socket.on("reject-call", (data) => {
+    const callerSocketId = data.to;
+    socket.to(callerSocketId).emit("call-rejected", { socket: socket.id });
+    console.log(`Call from ${callerSocketId} rejected by ${socket.id}`);
+  });
+
+  // Leave a chat room
   socket.on("leaveRoom", (chatId) => {
     socket.leave(chatId);
   });
 
+  // Handle user disconnection
   socket.on("disconnect", () => {
+    connectedUsers.forEach((id, userId) => {
+      if (id === socket.id) {
+        connectedUsers.delete(userId);
+      }
+    });
     console.log("User disconnected:", socket.id);
   });
 });

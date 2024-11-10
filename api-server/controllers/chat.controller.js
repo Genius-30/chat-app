@@ -312,12 +312,12 @@ export const sendMessage = async (req, res) => {
 
           // Upload the file (image, video, PDF, etc.) to Cloudinary
           const result = await uploadOnCloudinary(fileBuffer, file.mimetype);
-
           if (result) {
             return {
               filename: file.originalname,
               path: result.secure_url,
               mimetype: file.mimetype,
+              duration: result.duration,
             };
           }
         })

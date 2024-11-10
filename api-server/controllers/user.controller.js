@@ -9,6 +9,7 @@ import {
   generateRefreshToken,
 } from "../utils/generateTokens.js";
 import sendVerificationEmail from "../utils/sendEmail.js";
+import { sendOtp } from "../utils/sendOtp.js";
 
 // Cookie Options
 const options = {
@@ -20,9 +21,9 @@ const options = {
 
 // Signup User
 export const signup = async (req, res) => {
-  const verificationLink = `${process.env.FRONTEND_URL}/verify-email`;
+  const verificationLink = `${process.env.FRONTEND_URL}/verify-user`;
   try {
-    const { username, email, password } = req.body;
+    const { username, email, password, phoneNumber } = req.body;
     const avatar = req.file?.path;
 
     if (!username || !email || !password) {
@@ -32,6 +33,18 @@ export const signup = async (req, res) => {
     // Check if the user already exists
     const existingUser = await User.findOne({ email });
 
+    // Check if the phone number already exists
+    // const existingUserByPhone = await User.findOne({ phoneNumber });
+
+    // if (existingUserByPhone) {
+    //   return res.status(400).json({ message: "Phone number already exists" });
+    // }
+
+    // Generate verification OTP for phone number
+    // const phoneVerifyCode = Math.floor(100000 + Math.random() * 900000); // 6-digit OTP
+    // const phoneVerifyCodeExpiry = Date.now() + 10 * 60 * 1000; // OTP expires in 10 minutes
+
+    // Generate verification OTP for email
     let verifyCode = Math.floor(100000 + Math.random() * 900000);
     let verifyCodeExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes expiration
 
@@ -51,6 +64,9 @@ export const signup = async (req, res) => {
         existingUser.verifyCode = verifyCode;
         existingUser.verifyCodeExpiry = verifyCodeExpiry;
         existingUser.password = password;
+        // existingUser.phoneNumber = phoneNumber;
+        // existingUser.phoneVerifyCode = phoneVerifyCode;
+        // existingUser.phoneVerifyCodeExpiry = phoneVerifyCodeExpiry;
         if (avatarUploadResult) {
           existingUser.avatar = avatarUploadResult.secure_url;
         }
@@ -63,6 +79,9 @@ export const signup = async (req, res) => {
           verificationLink,
           verifyCode
         );
+
+        // Send OTP to the phone number
+        // await sendOtp(phoneNumber, phoneVerifyCode);
 
         const accessToken = await generateAccessToken(existingUser);
         const refreshToken = await generateRefreshToken(existingUser);
@@ -82,9 +101,12 @@ export const signup = async (req, res) => {
         username,
         email,
         password,
+        // phoneNumber,
         avatar: avatarUploadResult?.secure_url,
         verifyCode,
         verifyCodeExpiry,
+        //   phoneVerifyCode,
+        //   phoneVerifyCodeExpiry,
       });
 
       await sendVerificationEmail(
@@ -93,6 +115,8 @@ export const signup = async (req, res) => {
         verificationLink,
         verifyCode
       );
+
+      // await sendOtp(phoneNumber, verifyCode); // Send OTP to the phone number
 
       const accessToken = await generateAccessToken(newUser);
       const refreshToken = await generateRefreshToken(newUser);
@@ -181,6 +205,8 @@ export const logout = async (req, res) => {
     res.clearCookie("refreshToken");
     return res.status(200).json({ message: "Logged out!" });
   } catch (error) {
+    console.log(error);
+
     return res.status(500).json({ message: error.message });
   }
 };
@@ -208,13 +234,14 @@ export const checkUsername = async (req, res) => {
 export const verifyEmail = async (req, res) => {
   try {
     const { code } = req.body;
+
     const user = await User.findOne({
       email: req.user.email,
       verifyCode: code,
       verifyCodeExpiry: { $gt: Date.now() },
     });
 
-    if (!user) {
+    if (!user || user.isVerified) {
       return res.status(400).json({ message: "Invalid or expired code" });
     }
 
@@ -225,6 +252,34 @@ export const verifyEmail = async (req, res) => {
     await user.save();
 
     return res.status(200).json({ message: "Email verified" });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// verify phone number
+export const verifyPhone = async (req, res) => {
+  try {
+    const { code } = req.body;
+
+    const user = await User.findOne({
+      phoneNumber: req.user.phoneNumber,
+      phoneVerifyCode: code,
+      phoneVerifyCodeExpiry: { $gt: Date.now() },
+    });
+
+    if (!user || user.isPhoneVerified) {
+      return res.status(400).json({ message: "Invalid or expired code" });
+    }
+
+    user.isPhoneVerified = true;
+    user.phoneVerifyCode = "";
+    user.phoneVerifyCodeExpiry = Date.now();
+
+    await user.save();
+
+    return res.status(200).json({ message: "Phone number verified" });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -300,6 +355,35 @@ export const resendVerificationEmail = async (req, res) => {
       verificationLink,
       verifyCode
     );
+
+    await user.save();
+
+    return res.status(200).json({ message: "Verification email sent" });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// Resend Verification SMS
+export const resendVerificationSMS = async (req, res) => {
+  try {
+    const user = await User.findOne({ phoneNumber: req.user.phoneNumber });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isPhoneVerified) {
+      return res.status(400).json({ message: "User already verified" });
+    }
+
+    let phoneVerifyCode = Math.floor(100000 + Math.random() * 900000);
+    let phoneVerifyCodeExpiry = Date.now() + 10 * 60 * 1000; // 10 minutes expiration
+
+    user.phoneVerifyCode = phoneVerifyCode;
+    user.phoneVerifyCodeExpiry = phoneVerifyCodeExpiry;
+
+    await sendOtp(user.phoneNumber, phoneVerifyCode);
 
     await user.save();
 

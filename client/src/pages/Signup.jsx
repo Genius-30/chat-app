@@ -1,5 +1,5 @@
 import { CircleCheckBig, CircleX, ImagePlus, Eye, EyeOff } from "lucide-react";
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import Lottie from "lottie-react";
 import loadingAnim from "../animations/loadingAnim.json";
@@ -10,13 +10,16 @@ import { login } from "@/store/authSlice";
 import useDebounce from "@/hooks/useDebounce";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 
-const Signup = () => {
+export default function Component() {
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: "",
     email: "",
     password: "",
+    // phoneNumber: "",
     avatar: null,
     avatarFile: null,
   });
@@ -36,6 +39,13 @@ const Signup = () => {
     }));
   };
 
+  // const handlePhoneChange = (value) => {
+  //   setFormData((prev) => ({
+  //     ...prev,
+  //     phoneNumber: value,
+  //   }));
+  // };
+
   const handleAvatarChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -52,6 +62,7 @@ const Signup = () => {
       username: "",
       email: "",
       password: "",
+      phoneNumber: "",
       avatar: null,
       avatarFile: null,
     });
@@ -86,28 +97,44 @@ const Signup = () => {
     }
   }, [debouncedUsername]);
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    const { username, email, password, avatarFile } = formData;
-
+  const validateForm = () => {
+    const { username, email, password } = formData;
     if (!username || !email || !password) {
       toast.error("Please fill out all required fields!");
-      return;
+      return false;
     }
-
     if (!usernameAvailable) {
       toast.error("Username is not available");
-      return;
+      return false;
     }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error("Please enter a valid email address");
+      return false;
+    }
+    if (password.length < 8) {
+      toast.error("Password must be at least 8 characters long");
+      return false;
+    }
+    // if (phoneNumber.length < 10) {
+    //   toast.error("Please enter a valid phone number");
+    //   return false;
+    // }
+    return true;
+  };
+
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
 
     try {
       setLoading(true);
       const payload = new FormData();
-      payload.append("username", username);
-      payload.append("email", email);
-      payload.append("password", password);
-      if (avatarFile) {
-        payload.append("avatar", avatarFile);
+      payload.append("username", formData.username);
+      payload.append("email", formData.email);
+      payload.append("password", formData.password);
+      // payload.append("phoneNumber", `+${formData.phoneNumber}`);
+      if (formData.avatarFile) {
+        payload.append("avatar", formData.avatarFile);
       }
 
       const response = await axios.post("/api/user/signup", payload, {
@@ -123,10 +150,10 @@ const Signup = () => {
       dispatch(login(user, accessToken));
 
       toast.success("Signup successful. Verify Your Email Now!");
-      navigate("/verify-email");
+      navigate("/verify-user");
       resetForm();
     } catch (error) {
-      toast.error(error.data.message || "Signup failed");
+      toast.error(error.response.data.message || "Signup failed");
     } finally {
       setLoading(false);
     }
@@ -237,6 +264,7 @@ const Signup = () => {
             name="password"
             value={formData.password}
             onChange={handleInputChange}
+            autoComplete="off"
             className="h-10 rounded-md outline-none bg-gray-300 dark:bg-[#323232] py-2 px-3 pr-10 text-black dark:text-gray-50"
           />
           <Button
@@ -257,6 +285,26 @@ const Signup = () => {
           </Button>
         </div>
       </div>
+      {/* <div className="w-full flex flex-col gap-1">
+        <label htmlFor="phoneNumber" className="text-sm">
+          Phone Number*
+        </label>
+        <PhoneInput
+          country={"in"}
+          value={formData.phoneNumber}
+          onChange={handlePhoneChange}
+          inputProps={{
+            name: "phoneNumber",
+            required: true,
+            autoComplete: "off",
+          }}
+          containerClass="phone-input-container"
+          inputClass="phone-input"
+          buttonClass="phone-input-button"
+          dropdownClass="phone-input-dropdown"
+          enableSearch={true}
+        />
+      </div> */}
       <button
         type="submit"
         disabled={loading || !formData.username || !usernameAvailable}
@@ -275,6 +323,4 @@ const Signup = () => {
       </p>
     </form>
   );
-};
-
-export default Signup;
+}
