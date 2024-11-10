@@ -89,20 +89,22 @@ export default function CustomAudioPlayer({
             onClick={togglePlayPause}
             variant="outline"
             size="icon"
-            className="w-12 h-12 rounded-full bg-[#323232] dark:bg-slate-900 border-gray-600 hover:bg-zinc-700 dark:hover:bg-slate-800"
+            className="w-10 h-10 rounded-full bg-[#323232] dark:bg-slate-900 border-gray-600 hover:bg-zinc-700 dark:hover:bg-slate-800"
             aria-label={isPlaying ? "Pause" : "Play"}
           >
             {isPlaying ? (
-              <Pause className="h-6 w-6 text-white dark:text-gray-100" />
+              <Pause className="h-4 w-4 text-white dark:text-gray-100" />
             ) : (
-              <Play className="h-6 w-6 text-white dark:text-gray-100" />
+              <Play className="h-4 w-4 text-white dark:text-gray-100" />
             )}
           </Button>
-          <div className="text-xs sm:text-base font-semibold text-wrap mx-2 max-w-[40%] whitespace-normal break-words">
+          <div className="text-xs sm:text-base font-semibold text-wrap mx-2 max-w-[30%] sm:max-w-[45%] whitespace-normal break-words">
             <span>{fileName}</span>
           </div>
-          <div className="text-sm font-medium">
-            {formatTime(currentTime)} / {formatTime(duration)}
+          <div className="text-xs sm:text-sm font-medium">
+            <span>
+              {formatTime(currentTime)} / {formatTime(duration)}
+            </span>
           </div>
         </div>
         <Slider
