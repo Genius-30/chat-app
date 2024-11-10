@@ -9,7 +9,7 @@ import {
   generateRefreshToken,
 } from "../utils/generateTokens.js";
 import sendVerificationEmail from "../utils/sendEmail.js";
-import { sendOtp } from "../utils/sendOtp.js";
+// import { sendOtp } from "../utils/sendOtp.js";
 
 // Cookie Options
 const options = {
