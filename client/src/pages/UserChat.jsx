@@ -1,10 +1,3 @@
-import React, { useEffect, useRef, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { format, isToday, isYesterday, isSameDay } from "date-fns";
-import axios from "@/api/axios";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   ArrowLeft,
   AudioLinesIcon,
@@ -13,7 +6,6 @@ import {
   FileIcon,
   Loader2,
   Mic,
-  MoreVertical,
   Paperclip,
   Phone,
   Send,
@@ -21,31 +13,36 @@ import {
   VideoIcon,
   X,
 } from "lucide-react";
-import toast from "react-hot-toast";
-import CustomLoader from "@/components/Loader";
-import { useSelector } from "react-redux";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
   DialogContent,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import io from "socket.io-client";
+import { format, isSameDay, isToday, isYesterday } from "date-fns";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+
+import { Button } from "@/components/ui/button";
 import CustomAudioPlayer from "@/components/CustomAudioPlayer";
+import CustomLoader from "@/components/Loader";
+import { Input } from "@/components/ui/input";
+import axios from "@/api/axios";
+import io from "socket.io-client";
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 const socket = io(import.meta.env.VITE_BACKEND_URL, { autoConnect: false });
 
 export default function UserChat() {
+  const [userStatus, setUserStatus] = useState({});
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingUsers, setTypingUsers] = useState([]);
+
   const [isRecording, setIsRecording] = useState(false);
   const [audioBlob, setAudioBlob] = useState(null);
   const mediaRecorderRef = useRef(null);
-
-  const [isCallActive, setIsCallActive] = useState(false);
-  const [isVideoCall, setIsVideoCall] = useState(false);
-  const [incomingCall, setIncomingCall] = useState(null);
-  const localVideoRef = useRef(null);
-  const remoteVideoRef = useRef(null);
-  const peerConnectionRef = useRef(null);
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -61,7 +58,9 @@ export default function UserChat() {
   const [recordingDuration, setRecordingDuration] = useState(0);
   const recordingIntervalRef = useRef(null);
 
-  const { _id: currentUserId } = useSelector((state) => state.auth.user);
+  const { _id: currentUserId, username: currentUsername } = useSelector(
+    (state) => state.auth.user
+  );
 
   useEffect(() => {
     const fetchChat = async () => {
@@ -71,6 +70,7 @@ export default function UserChat() {
         if (res.data.error) {
           toast(res.data.message);
         }
+
         setChat(res.data);
         setMessages(res.data.messages || []);
       } catch (error) {
@@ -86,152 +86,6 @@ export default function UserChat() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  const startCall = async (video = false) => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: true,
-        video: video,
-      });
-
-      // Wait until the video element is rendered before assigning the stream
-      setIsCallActive(true);
-      setIsVideoCall(video);
-
-      // Assign the stream to the local video element in useEffect
-      if (peerConnectionRef.current) {
-        peerConnectionRef.current.close();
-      }
-      peerConnectionRef.current = new RTCPeerConnection();
-
-      stream.getTracks().forEach((track) => {
-        peerConnectionRef.current.addTrack(track, stream);
-      });
-
-      peerConnectionRef.current.ontrack = (event) => {
-        if (remoteVideoRef.current) {
-          remoteVideoRef.current.srcObject = event.streams[0];
-        }
-      };
-
-      const offer = await peerConnectionRef.current.createOffer();
-      await peerConnectionRef.current.setLocalDescription(offer);
-
-      socket.emit("call-user", {
-        to: otherUsers._id,
-        offer: offer,
-        video: video,
-      });
-    } catch (error) {
-      console.error("Error starting call:", error);
-      let errorMessage = "Failed to start call. ";
-      if (error.name === "NotAllowedError") {
-        errorMessage += "Please check your camera and microphone permissions.";
-      } else if (error.name === "NotFoundError") {
-        errorMessage += "Camera or microphone not found.";
-      } else {
-        errorMessage += "An unexpected error occurred.";
-      }
-      toast.error(errorMessage);
-      setIsCallActive(false);
-      setIsVideoCall(false);
-    }
-  };
-
-  useEffect(() => {
-    socket.on("call-made", async (data) => {
-      console.log("Incoming call data:", data);
-      setIncomingCall(data);
-    });
-
-    socket.on("call-rejected", () => {
-      toast.error("Call was rejected");
-      endCall();
-    });
-
-    socket.on("answer-made", async (data) => {
-      await peerConnectionRef.current.setRemoteDescription(
-        new RTCSessionDescription(data.answer)
-      );
-    });
-
-    return () => {
-      socket.off("call-made");
-      socket.off("call-rejected");
-      socket.off("answer-made");
-    };
-  }, []);
-
-  useEffect(() => {
-    if (isCallActive && localVideoRef.current && isVideoCall) {
-      // Set the video stream when call starts and localVideoRef is available
-      navigator.mediaDevices
-        .getUserMedia({ audio: true, video: isVideoCall })
-        .then((stream) => {
-          localVideoRef.current.srcObject = stream;
-        })
-        .catch((error) => {
-          console.error("Error accessing media devices:", error);
-        });
-    }
-  }, [isCallActive, isVideoCall]);
-
-  const endCall = () => {
-    if (peerConnectionRef.current) {
-      peerConnectionRef.current.close();
-    }
-    if (localVideoRef.current && localVideoRef.current.srcObject) {
-      localVideoRef.current.srcObject
-        .getTracks()
-        .forEach((track) => track.stop());
-    }
-    setIsCallActive(false);
-    setIsVideoCall(false);
-  };
-
-  const handleIncomingCall = async (accept) => {
-    if (accept) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          audio: true,
-          video: incomingCall.video,
-        });
-
-        localVideoRef.current.srcObject = stream;
-
-        peerConnectionRef.current = new RTCPeerConnection();
-
-        stream.getTracks().forEach((track) => {
-          peerConnectionRef.current.addTrack(track, stream);
-        });
-
-        peerConnectionRef.current.ontrack = (event) => {
-          remoteVideoRef.current.srcObject = event.streams[0];
-        };
-
-        await peerConnectionRef.current.setRemoteDescription(
-          new RTCSessionDescription(incomingCall.offer)
-        );
-
-        const answer = await peerConnectionRef.current.createAnswer();
-        await peerConnectionRef.current.setLocalDescription(answer);
-
-        socket.emit("make-answer", {
-          answer: answer,
-          to: incomingCall.socket,
-        });
-
-        setIsCallActive(true);
-        setIsVideoCall(incomingCall.video);
-      } catch (error) {
-        console.error("Error handling incoming call:", error);
-        toast.error("Error handling incoming call.");
-      }
-    } else {
-      socket.emit("reject-call", { to: incomingCall.socket });
-    }
-    setIncomingCall(null);
-  };
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -358,6 +212,19 @@ export default function UserChat() {
     // Connect to the Socket.IO server
     socket.connect();
 
+    // Emit register-user with current user details
+    socket.emit("register-user", {
+      userId: currentUserId,
+      username: currentUsername,
+    });
+
+    socket.on("userStatus", ({ userId, status, lastSeen }) => {
+      setUserStatus((prev) => ({
+        ...prev,
+        [userId]: { status, lastSeen },
+      }));
+    });
+
     // Join the specific chat room
     socket.emit("joinRoom", chatId);
 
@@ -366,13 +233,74 @@ export default function UserChat() {
       setMessages((prevMessages) => [...prevMessages, newMessage]);
     });
 
+    socket.on("typing", ({ userId, username }) => {
+      if (userId !== currentUserId) {
+        setTypingUsers((prev) => [...prev, username]);
+      }
+    });
+
+    socket.on("stop typing", ({ userId, username }) => {
+      if (userId !== currentUserId) {
+        setTypingUsers((prev) => prev.filter((user) => user !== username));
+      }
+    });
+
     return () => {
       // Leave the room when the component unmounts
       socket.emit("leaveRoom", chatId);
       socket.off("message");
+      socket.off("typing");
+      socket.off("stop typing");
+      socket.off("userStatus");
       socket.disconnect();
     };
-  }, [chatId]);
+  }, [chatId, currentUserId, currentUsername]);
+
+  const renderUserStatus = (userId) => {
+    const status = userStatus[userId];
+    if (!status) return null;
+
+    if (status.status === "online") {
+      return <span className="text-green-500">Online</span>;
+    } else {
+      let lastSeen;
+
+      if (isToday(status.lastSeen)) {
+        lastSeen = format(status.lastSeen, "p");
+      } else if (isYesterday(status.lastSeen)) {
+        lastSeen = format(status.lastSeen, "'Yesterday at' p");
+      } else {
+        lastSeen = format(status.lastSeen, "MMM d, yyyy 'at' p");
+      }
+
+      return <span className="text-gray-500">Last seen: {lastSeen}</span>;
+    }
+  };
+
+  useEffect(() => {
+    let typingTimer;
+    if (isTyping) {
+      socket.emit("typing", {
+        chatId,
+        userId: currentUserId,
+        username: currentUsername,
+      });
+      typingTimer = setTimeout(() => {
+        setIsTyping(false);
+        socket.emit("stop typing", {
+          chatId,
+          userId: currentUserId,
+          username: currentUsername,
+        });
+      }, 1500);
+    }
+    return () => clearTimeout(typingTimer);
+  }, [isTyping, chatId, currentUserId, currentUsername]);
+
+  const handleInputChange = (e) => {
+    setInputMessage(e.target.value);
+    setIsTyping(true);
+  };
 
   const renderFilePreview = (file) => {
     const fileUrl = file.path || URL.createObjectURL(file);
@@ -459,6 +387,7 @@ export default function UserChat() {
 
   return (
     <div className="flex flex-col h-full w-full bg-gray-100 dark:bg-[#121212] pb-12 sm:p-0">
+      <div></div>
       <header className="bg-white dark:bg-[#1E1E1E] text-gray-900 dark:text-gray-50 border-b border-gray-200 dark:border-gray-800 py-3 px-2 sm:p-4 flex items-center">
         <Button
           variant="ghost"
@@ -493,22 +422,24 @@ export default function UserChat() {
             {chat.isGroupChat ? chat.chatName : otherUsers?.username}
           </h2>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            {chat.isGroupChat ? `${chat.users.length} participants` : "Online"}
+            {chat.isGroupChat
+              ? `${chat.users.length} participants`
+              : renderUserStatus(otherUsers?._id)}
           </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" onClick={() => startCall(true)}>
+        {/* <div className="flex items-center space-x-2">
+          <Button variant="ghost" size="icon">
             <Video className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={() => startCall(false)}>
+          <Button variant="ghost" size="icon">
             <Phone className="h-5 w-5 text-gray-600 dark:text-gray-400" />
           </Button>
-        </div>
+        </div> */}
       </header>
 
       <main className="flex-grow overflow-y-auto p-2 sm:p-4 space-y-4 bg-gray-50 dark:bg-[#1A1A1A] custom-scroller">
-        {groupedMessages.map(({ date, messages }, groupIndex) => (
-          <div key={groupIndex}>
+        {groupedMessages.map(({ date, messages }) => (
+          <div key={date}>
             <div className="sticky top-0 z-10 flex justify-center mb-4">
               <span className="bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 text-xs px-2 py-1 rounded-full shadow-md shadow-gray-300 dark:shadow-zinc-800">
                 {formatDateHeader(date)}
@@ -532,8 +463,8 @@ export default function UserChat() {
                 >
                   {message.files && message.files.length > 0 && (
                     <div className="w-full">
-                      {message.files.map((file, index) => (
-                        <div key={index} className="w-full">
+                      {message.files.map((file) => (
+                        <div key={file._id} className="w-full">
                           {renderFilePreview(file)}
                         </div>
                       ))}
@@ -549,44 +480,6 @@ export default function UserChat() {
           </div>
         ))}
         <div ref={messagesEndRef} />
-        {isCallActive && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg max-w-2xl w-full">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-bold">
-                  {isVideoCall ? "Video Call" : "Voice Call"}
-                </h2>
-                <Button variant="destructive" onClick={endCall}>
-                  End Call
-                </Button>
-              </div>
-              <div className="flex flex-col sm:flex-row gap-4">
-                <video
-                  ref={localVideoRef}
-                  autoPlay
-                  muted
-                  playsInline
-                  className={`w-full sm:w-1/2 h-48 sm:h-64 bg-gray-200 rounded-lg ${
-                    isVideoCall ? "" : "hidden"
-                  }`}
-                />
-                <video
-                  ref={remoteVideoRef}
-                  autoPlay
-                  playsInline
-                  className={`w-full sm:w-1/2 h-48 sm:h-64 bg-gray-200 rounded-lg ${
-                    isVideoCall ? "" : "hidden"
-                  }`}
-                />
-                {!isVideoCall && (
-                  <div className="w-full h-48 sm:h-64 bg-gray-200 dark:bg-gray-700 rounded-lg flex items-center justify-center">
-                    <AudioLinesIcon className="h-16 w-16 text-gray-400" />
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        )}
       </main>
 
       {/* Preview the files being uploaded */}
@@ -596,7 +489,11 @@ export default function UserChat() {
             const fileType = file.type.split("/")[0]; // Get the type (image, audio, video, etc.)
 
             return (
-              <div key={index} title={file.name} className="h-16 w-16 relative">
+              <div
+                key={file.name}
+                title={file.name}
+                className="h-16 w-16 relative"
+              >
                 {fileType === "image" ? (
                   <img
                     src={URL.createObjectURL(file)}
@@ -605,13 +502,14 @@ export default function UserChat() {
                   />
                 ) : (
                   <div className="h-full w-full flex flex-col items-center justify-center space-y-1 bg-gray-200 dark:bg-zinc-700 rounded-md p-1">
-                    {fileType === "audio" ? (
+                    {fileType === "audio" && (
                       <AudioLinesIcon className="h-7 w-7" />
-                    ) : fileType === "video" ? (
-                      <VideoIcon className="h-7 w-7" />
-                    ) : (
-                      <FileIcon className="h-7 w-7" />
                     )}
+                    {fileType === "video" && <VideoIcon className="h-7 w-7" />}
+                    {fileType !== "video" ||
+                      (fileType !== "audio" && (
+                        <FileIcon className="h-7 w-7" />
+                      ))}
                     <span className="w-full text-xs text-gray-500 dark:text-gray-400 truncate">
                       {file.name}
                     </span>
@@ -629,6 +527,12 @@ export default function UserChat() {
         </div>
       )}
 
+      {typingUsers.length > 0 && (
+        <div className="p-2 text-sm text-gray-500 dark:text-gray-400">
+          {typingUsers.join(", ")} {typingUsers.length === 1 ? "is" : "are"}{" "}
+          typing...
+        </div>
+      )}
       <footer className="bg-white dark:bg-[#1E1E1E] border-t border-gray-200 dark:border-gray-800 p-2 sm:p-4">
         <form
           onSubmit={handleSendMessage}
@@ -688,7 +592,7 @@ export default function UserChat() {
               type="text"
               placeholder="Type a message"
               value={inputMessage}
-              onChange={(e) => setInputMessage(e.target.value)}
+              onChange={handleInputChange}
               className="flex-grow border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-[#2A2A2A] text-gray-900 dark:text-white transition-none"
             />
           )}
@@ -725,24 +629,6 @@ export default function UserChat() {
           </Button>
         </form>
       </footer>
-      {incomingCall && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-lg">
-            <h2 className="text-xl font-bold mb-4">
-              Incoming {incomingCall.video ? "Video" : "Voice"} Call
-            </h2>
-            <div className="flex justify-center space-x-4">
-              <Button onClick={() => handleIncomingCall(true)}>Accept</Button>
-              <Button
-                variant="destructive"
-                onClick={() => handleIncomingCall(false)}
-              >
-                Reject
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -1,14 +1,15 @@
-import React, { useEffect, useRef, useState } from "react";
 import { Outlet, useNavigate, useParams } from "react-router-dom";
-import { useSelector } from "react-redux";
-import axios from "@/api/axios";
-import toast from "react-hot-toast";
-import Sidebar from "../components/Sidebar";
+import { useEffect, useRef, useState } from "react";
+
 import ChatCard from "../components/ChatCard";
 import ChatsSkeleton from "@/components/ChatsSkeleton";
 import GroupChatModal from "@/components/GroupChatModal";
 import ManageChatModal from "@/components/ManageChatModal";
 import { Separator } from "@/components/ui/separator";
+import Sidebar from "../components/Sidebar";
+import axios from "@/api/axios";
+import toast from "react-hot-toast";
+import { useSelector } from "react-redux";
 
 export default function Home() {
   const [allChats, setAllChats] = useState([]);
@@ -59,7 +60,7 @@ export default function Home() {
 
       setAllChats(res.data);
       setChats(res.data);
-    } catch (error) {
+    } catch {
       toast.error("Failed to load chats");
     } finally {
       setLoading(false);
@@ -131,9 +132,9 @@ export default function Home() {
 
             {/* Chats List */}
             <div className="flex-1 overflow-y-auto overflow-x-hidden space-y-1 custom-scroller">
-              {loading ? (
-                <ChatsSkeleton count={8} />
-              ) : chats.length > 0 ? (
+              {loading && <ChatsSkeleton count={8} />}
+
+              {chats.length > 0 ? (
                 chats.map((chat) => {
                   return (
                     <ChatCard

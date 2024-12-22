@@ -1,8 +1,11 @@
-import React from "react";
-import { Check, CheckCheck } from "lucide-react";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { DialogTitle } from "@radix-ui/react-dialog";
+import { Check, CheckCheck } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { format, isThisYear, isToday, isYesterday } from "date-fns";
 
 export default function ChatCard({ chat, onClick, selected, currentUserId }) {

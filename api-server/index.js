@@ -1,12 +1,12 @@
-import express from "express";
+import { Server } from "socket.io";
+import { chatRouter } from "./routes/chat.route.js";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import dbConnect from "./dbConnect.js";
 import dotenv from "dotenv";
-import { userRouter } from "./routes/user.route.js";
-import { chatRouter } from "./routes/chat.route.js";
-import cookieParser from "cookie-parser";
+import express from "express";
 import http from "http";
-import { Server } from "socket.io";
+import { userRouter } from "./routes/user.route.js";
 
 dotenv.config();
 
@@ -28,10 +28,11 @@ const connectedUsers = new Map();
 io.on("connection", (socket) => {
   console.log(`User connected: ${socket.id}`);
 
-  // Store user in the connected users map
-  socket.on("register-user", (userId) => {
-    connectedUsers.set(userId, socket.id);
-    console.log(`User ${userId} registered with socket ID ${socket.id}`);
+  socket.on("register-user", async ({ userId, username }) => {
+    connectedUsers.set(userId, { socketId: socket.id, status: "online" });
+    console.log(`User registered: ${username} with socket ID ${socket.id}`);
+
+    io.emit("userStatus", { userId, status: "online" });
   });
 
   // Join a chat room
@@ -45,36 +46,12 @@ io.on("connection", (socket) => {
     socket.to(message.chatId).emit("message", message);
   });
 
-  // Handle video/voice call initiation
-  socket.on("call-user", (data) => {
-    const receiverSocketId = connectedUsers.get(data.to);
-    if (receiverSocketId) {
-      socket.to(receiverSocketId).emit("call-made", {
-        offer: data.offer,
-        socket: socket.id,
-        video: data.video,
-      });
-      console.log(`Call initiated from ${socket.id} to ${receiverSocketId}`);
-    } else {
-      console.log(`User ${data.to} is not connected`);
-    }
+  socket.on("typing", ({ chatId, userId, username }) => {
+    socket.to(chatId).emit("typing", { userId, username });
   });
 
-  // Handle answer to a call
-  socket.on("make-answer", (data) => {
-    const callerSocketId = data.to;
-    socket.to(callerSocketId).emit("answer-made", {
-      answer: data.answer,
-      socket: socket.id,
-    });
-    console.log(`Answer sent from ${socket.id} to ${callerSocketId}`);
-  });
-
-  // Handle call rejection
-  socket.on("reject-call", (data) => {
-    const callerSocketId = data.to;
-    socket.to(callerSocketId).emit("call-rejected", { socket: socket.id });
-    console.log(`Call from ${callerSocketId} rejected by ${socket.id}`);
+  socket.on("stop typing", ({ chatId, userId, username }) => {
+    socket.to(chatId).emit("stop typing", { userId, username });
   });
 
   // Leave a chat room
@@ -84,9 +61,15 @@ io.on("connection", (socket) => {
 
   // Handle user disconnection
   socket.on("disconnect", () => {
-    connectedUsers.forEach((id, userId) => {
+    connectedUsers.forEach(async (id, userId) => {
       if (id === socket.id) {
         connectedUsers.delete(userId);
+
+        io.emit("userStatus", {
+          userId,
+          status: "offline",
+          lastSeen: new Date(),
+        });
       }
     });
     console.log("User disconnected:", socket.id);

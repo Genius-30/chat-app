@@ -1,9 +1,9 @@
-import mongoose from "mongoose";
 import Chat from "../models/chat.model.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import Message from "../models/message.model.js";
 import User from "../models/user.model.js";
+import mongoose from "mongoose";
 import sharp from "sharp";
+import { uploadOnCloudinary } from "../utils/cloudinary.js";
 
 // create or remove a chat
 export const toggleChat = async (req, res) => {
@@ -242,6 +242,7 @@ export const getChat = async (req, res) => {
     const chat = await Chat.findById(chatId)
       .populate("users", "_id username avatar")
       .populate("groupAdmin", "_id username avatar");
+      
 
     if (!chat) {
       return res.status(404).json({ message: "Chat not found" });
@@ -356,5 +357,23 @@ export const sendMessage = async (req, res) => {
   } catch (error) {
     console.error("Error sending message:", error);
     return res.status(500).json({ message: error.message });
+  }
+};
+
+// mark messages as read
+export const markAsRead = async (req, res) => {
+  const { chatId } = req.params;
+  const userId = req.user.id;
+
+  try {
+    await Message.updateMany(
+      { chat: chatId, readBy: { $ne: userId } },
+      { $addToSet: { readBy: userId } }
+    );
+
+    res.status(200).json({ message: "Messages marked as read" });
+  } catch (error) {
+    console.error("Error marking messages as read:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };
