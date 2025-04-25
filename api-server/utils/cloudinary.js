@@ -13,7 +13,7 @@ const uploadOnCloudinary = async (fileBuffer) => {
   try {
     const uploadResult = await new Promise((resolve, reject) => {
       const stream = cloudinary.uploader.upload_stream(
-        { resource_type: "auto" },
+        { resource_type: "auto", folder: "chat-app" },
         (error, result) => {
           if (error) {
             reject(error);
